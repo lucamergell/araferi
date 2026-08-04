@@ -38,7 +38,7 @@ export const translations = {
       title: 'პადელის მატჩები',
       cityBadge: 'თბილისი',
       subtitle: 'ღია თამაშები ლისზე, ვაკეში, საბურთალოსა და დიღომში',
-      refundBanner: '100% თანხის დაბრუნება არასრულ თამაშზე',
+      refundBanner: '100% თანხის დაბრუნება არ შევსებულ თამაშზე',
       showing: 'სულ:',
       matchesAvailable: 'თამაში',
       currencyNote: 'ფასები GEL-ში',
