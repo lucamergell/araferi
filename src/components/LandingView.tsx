@@ -18,13 +18,6 @@ export const LandingView: React.FC = () => {
       <section className="relative overflow-hidden pt-8 pb-16 px-4 sm:px-6 lg:px-8 border-b border-white/10">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            
-            {/* Tbilisi Padel Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-pill text-purple-200 text-xs font-bold shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span>{t.landing.badge}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-[1.1]">

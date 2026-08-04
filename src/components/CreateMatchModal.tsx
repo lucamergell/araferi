@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Match, SkillLevel } from '../types';
 import { X, Calendar, Clock, MapPin, Plus, DollarSign } from 'lucide-react';
 
@@ -10,20 +11,21 @@ interface CreateMatchModalProps {
 
 export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, matchToEdit }) => {
   const { createMatch, updateMatch } = useApp();
+  const { t } = useLanguage();
 
-  const [title, setTitle] = useState(matchToEdit?.title || 'Lisi Evening Padel Match');
-  const [locationName, setLocationName] = useState(matchToEdit?.locationName || 'Lisi Padel Club');
-  const [address, setAddress] = useState(matchToEdit?.address || 'Lisi Lake Park, Tbilisi');
+  const [title, setTitle] = useState(matchToEdit?.title || t.createMatchModal.defaultTitle);
+  const [locationName, setLocationName] = useState(matchToEdit?.locationName || t.createMatchModal.defaultClub);
+  const [address, setAddress] = useState(matchToEdit?.address || t.createMatchModal.defaultAddress);
   const [district, setDistrict] = useState(matchToEdit?.district || 'Lisi');
   const [date, setDate] = useState(matchToEdit?.date || new Date().toISOString().split('T')[0]);
-  const [dayOfWeek, setDayOfWeek] = useState(matchToEdit?.dayOfWeek || 'Thursday');
+  const [dayOfWeek, setDayOfWeek] = useState(matchToEdit?.dayOfWeek || t.createMatchModal.dayThursday);
   const [startTime, setStartTime] = useState(matchToEdit?.startTime || '18:00');
   const [durationMinutes, setDurationMinutes] = useState(matchToEdit?.durationMinutes || 90);
   const [totalSpots, setTotalSpots] = useState(matchToEdit?.totalSpots || 4);
   const [skillLevelRequired, setSkillLevelRequired] = useState<SkillLevel>(matchToEdit?.skillLevelRequired || 'Intermediate');
   const [courtCostGel, setCourtCostGel] = useState(matchToEdit?.courtCostGel || 80);
   const [pricePerPlayerGel, setPricePerPlayerGel] = useState(matchToEdit?.pricePerPlayerGel || 25);
-  const [description, setDescription] = useState(matchToEdit?.description || 'Organized 90-min padel session. Balls provided. Full refund guarantee if incomplete.');
+  const [description, setDescription] = useState(matchToEdit?.description || t.createMatchModal.defaultDesc);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +78,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
         {/* Header */}
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
           <h3 className="text-lg font-black text-white">
-            {matchToEdit ? 'Edit Match' : 'Create New Padel Match'}
+            {matchToEdit ? t.createMatchModal.titleEdit : t.createMatchModal.titleCreate}
           </h3>
           <button onClick={onClose} className="p-2 rounded-full bg-purple-950/50 hover:bg-purple-900/60 text-purple-300">
             <X className="w-5 h-5" />
@@ -87,7 +89,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Match Title</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.matchTitle}</label>
               <input
                 type="text"
                 required
@@ -98,7 +100,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
 
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Padel Club / Location</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.clubLocation}</label>
               <input
                 type="text"
                 required
@@ -111,7 +113,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">District in Tbilisi</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.district}</label>
               <select
                 value={district}
                 onChange={e => setDistrict(e.target.value)}
@@ -126,7 +128,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
 
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Address</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.address}</label>
               <input
                 type="text"
                 required
@@ -140,7 +142,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
           {/* Date & Time */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Date</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.date}</label>
               <input
                 type="date"
                 required
@@ -151,7 +153,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
 
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Day of Week</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.dayOfWeek}</label>
               <input
                 type="text"
                 required
@@ -162,7 +164,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
 
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Start Time</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.startTime}</label>
               <input
                 type="time"
                 required
@@ -173,7 +175,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
 
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Duration (m)</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.durationMins}</label>
               <input
                 type="number"
                 required
@@ -186,11 +188,11 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
 
           {/* Pricing & Economics */}
           <div className="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-800/30 space-y-3">
-            <div className="text-xs font-bold text-purple-200">Economics & GEL Revenue Calculation</div>
+            <div className="text-xs font-bold text-purple-200">{t.createMatchModal.economicsHeader}</div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-purple-300/80 font-semibold mb-1">Court Rent (GEL)</label>
+                <label className="block text-purple-300/80 font-semibold mb-1">{t.createMatchModal.courtCost}</label>
                 <input
                   type="number"
                   required
@@ -201,7 +203,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
               </div>
 
               <div>
-                <label className="block text-purple-300/80 font-semibold mb-1">Price/Player (GEL)</label>
+                <label className="block text-purple-300/80 font-semibold mb-1">{t.createMatchModal.pricePerPlayer}</label>
                 <input
                   type="number"
                   required
@@ -212,7 +214,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
               </div>
 
               <div>
-                <label className="block text-purple-300/80 font-semibold mb-1">Spots Count</label>
+                <label className="block text-purple-300/80 font-semibold mb-1">{t.createMatchModal.spotsCount}</label>
                 <input
                   type="number"
                   required
@@ -223,12 +225,12 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-purple-900/30">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs pt-1 border-t border-purple-900/30">
               <span className="text-purple-300/80">
-                Revenue: <strong className="text-white">{calculatedRevenue} GEL</strong> (4 x {pricePerPlayerGel})
+                {t.createMatchModal.revenue}: <strong className="text-white">{calculatedRevenue} {t.common.gel}</strong> ({totalSpots} x {pricePerPlayerGel})
               </span>
               <span className="text-purple-300/80">
-                Padely Profit Margin: <strong className={calculatedMargin >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>{calculatedMargin} GEL</strong>
+                {t.createMatchModal.profitMargin}: <strong className={calculatedMargin >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>{calculatedMargin} {t.common.gel}</strong>
               </span>
             </div>
           </div>
@@ -236,21 +238,21 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
           {/* Skill Level & Description */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Required Skill Level</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.skillRequired}</label>
               <select
                 value={skillLevelRequired}
                 onChange={e => setSkillLevelRequired(e.target.value as SkillLevel)}
                 className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none"
               >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-                <option value="Pro">Pro</option>
+                <option value="Beginner">{t.common.beginner}</option>
+                <option value="Intermediate">{t.common.intermediate}</option>
+                <option value="Advanced">{t.common.advanced}</option>
+                <option value="Pro">{t.common.pro}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Description</label>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.description}</label>
               <input
                 type="text"
                 required
@@ -264,9 +266,9 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
           {/* Submit */}
           <button
             type="submit"
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl transition-all cursor-pointer active:scale-95"
           >
-            {matchToEdit ? 'Save Match Changes' : 'Publish New Match'}
+            {matchToEdit ? t.createMatchModal.saveBtn : t.createMatchModal.createBtn}
           </button>
 
         </form>

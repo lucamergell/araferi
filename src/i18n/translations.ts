@@ -17,7 +17,7 @@ export const translations = {
 
     // Hero / Landing
     landing: {
-      badge: 'პირველი პადელის სოციალური ქსელი',
+      badge: 'საიტი მუშაობს სატესტო რეჟიმში',
       titleLine1: 'იპოვე პადელის მატჩები',
       titleLine2: 'მარტივად',
       subtitle: 'უკვე აღარ გჭირდება 4 კაცის შეკრება. იპოვე სასურველი მატჩი, შეუერთდი და მოდი კორტზე!',
@@ -165,8 +165,18 @@ export const translations = {
       skillRequired: 'საჭირო დონე',
       courtCost: 'კორტის იჯარის ფასი (GEL)',
       pricePerPlayer: 'ფასი მოთამაშეზე (GEL)',
+      spotsCount: 'ადგილების რაოდენობა',
+      economicsHeader: 'ეკონომიკა & შემოსავლის გაანგარიშება',
+      revenue: 'შემოსავალი',
+      profitMargin: 'Padely-ს მოგება',
       description: 'აღწერა',
-      saveBtn: 'თამაშის შენახვა',
+      saveBtn: 'ცვლილებების შენახვა',
+      createBtn: 'ახალი თამაშის გამოქვეყნება',
+      defaultTitle: 'ლისის საღამოს პადელის თამაში',
+      defaultClub: 'ლისი პადელ კლუბი',
+      defaultAddress: 'ლისის ტბის პარკი, თბილისი',
+      defaultDesc: 'ორგანიზებული 90-წუთიანი პადელის თამაში. ბურთები უზრუნველყოფილია.',
+      dayThursday: 'ხუთშაბათი',
     },
 
     // Rankings
@@ -269,7 +279,7 @@ export const translations = {
 
     // Hero / Landing
     landing: {
-      badge: 'Padel in Tbilisi',
+      badge: 'Website in test mode',
       titleLine1: 'Play Padel',
       titleLine2: 'Easily in Tbilisi',
       subtitle: 'No need to find 4 players. Pick a match, book your spot, and play.',
@@ -417,8 +427,18 @@ export const translations = {
       skillRequired: 'Required Skill',
       courtCost: 'Court Cost (GEL)',
       pricePerPlayer: 'Price per Player (GEL)',
+      spotsCount: 'Spots Count',
+      economicsHeader: 'Economics & GEL Revenue Calculation',
+      revenue: 'Revenue',
+      profitMargin: 'Padely Profit Margin',
       description: 'Description',
-      saveBtn: 'Save Match',
+      saveBtn: 'Save Match Changes',
+      createBtn: 'Publish New Match',
+      defaultTitle: 'Lisi Evening Padel Match',
+      defaultClub: 'Lisi Padel Club',
+      defaultAddress: 'Lisi Lake Park, Tbilisi',
+      defaultDesc: 'Organized 90-min padel session. Balls provided.',
+      dayThursday: 'Thursday',
     },
 
     // Rankings

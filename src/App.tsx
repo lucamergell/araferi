@@ -14,6 +14,7 @@ import { AuthModal } from './components/AuthModal';
 import { OnboardingProfileModal } from './components/OnboardingProfileModal';
 import { AbstractBackgroundAnimation } from './components/AbstractBackgroundAnimation';
 import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import padelyLogo from './assets/images/Padely.png';
 
 const MainContent: React.FC = () => {
   const { currentView, notification } = useApp();
@@ -69,26 +70,30 @@ const MainContent: React.FC = () => {
       <MobileTabNav />
 
       {/* Footer */}
-      <footer className="relative z-10 bg-[#06030d]/80 backdrop-blur-xl border-t border-white/10 py-8 px-4 sm:px-6 lg:px-8 text-xs text-purple-300/60 pb-20 md:pb-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="relative z-10 bg-[#06030d]/80 backdrop-blur-xl border-t border-white/10 pt-8 pb-20 md:pb-8 px-4 sm:px-6 lg:px-8 text-xs text-purple-300/60">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
           
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-black text-white text-xs shadow-md shadow-purple-900/50">
-              P
-            </div>
-            <span className="font-bold text-white tracking-tight">PADELY TBILISI</span>
-            <span>— Organized Padel Matches in Georgia</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-purple-200/90 glass-pill px-3.5 py-1.5 rounded-full">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{t.footer.refundGuarantee}</span>
+          <div className="flex items-center gap-2.5">
+            <img 
+              src={padelyLogo} 
+              alt="Padely Logo" 
+              referrerPolicy="no-referrer"
+              className="w-7 h-7 rounded-full object-cover border border-purple-400/40 shadow-md" 
+            />
+            <span className="font-black text-white text-sm tracking-wider uppercase">PADELY.GE</span>
+            <span className="text-purple-400/80">— Organized Padel Matches in Georgia</span>
           </div>
 
           <div className="text-[11px] text-purple-300/60 font-medium">
             {t.footer.clubsList}
           </div>
 
+        </div>
+
+        {/* Complete Bottom Test Mode Notice */}
+        <div className="border-t border-white/5 pt-4 text-center flex items-center justify-center gap-2 text-[11px] font-semibold text-purple-300/80">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span>{t.landing.badge}</span>
         </div>
       </footer>
 

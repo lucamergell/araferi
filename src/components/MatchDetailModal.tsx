@@ -125,27 +125,6 @@ export const MatchDetailModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Description */}
-          <div>
-            <h4 className="text-xs font-bold text-purple-200 uppercase tracking-wider mb-1.5">
-              {t.matchDetails.overview}
-            </h4>
-            <p className="text-xs sm:text-sm text-purple-200/80 leading-relaxed bg-purple-950/20 p-3.5 rounded-2xl border border-purple-900/30">
-              {match.description}
-            </p>
-          </div>
-
-          {/* Refund Guarantee Box */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-purple-950/80 to-emerald-950/80 border border-emerald-500/50 space-y-1">
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
-              <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-              <span>{t.matchDetails.refundGuaranteeTitle}</span>
-            </div>
-            <p className="text-xs text-purple-200/90 leading-relaxed pl-7">
-              {t.matchDetails.refundGuaranteeDesc}
-            </p>
-          </div>
-
           {/* Participants Spot Breakdown */}
           <div>
             <div className="flex items-center justify-between mb-3">

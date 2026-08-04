@@ -50,14 +50,10 @@ export const PaymentModal: React.FC = () => {
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-purple-900/60 border border-purple-600/40 flex items-center justify-center text-purple-300 font-bold">
-              🎾
-            </div>
-            <div>
-              <h3 className="text-lg font-black text-white">{t.paymentModal.modalTitle}</h3>
-              <p className="text-xs text-purple-300/70">{activeMatchForPayment.title}</p>
-            </div>
+          <div>
+            <div className="text-[11px] font-black tracking-widest text-purple-400 uppercase">PADELY.GE</div>
+            <h3 className="text-lg font-black text-white">{t.paymentModal.modalTitle}</h3>
+            <p className="text-xs text-purple-300/70">{activeMatchForPayment.title}</p>
           </div>
 
           <button
@@ -68,22 +64,12 @@ export const PaymentModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Total Fee & Refund Guarantee Banner */}
+        {/* Total Fee Banner */}
         <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/80 via-indigo-950/60 to-purple-950/80 border border-purple-800/40 flex items-center justify-between">
           <div>
             <div className="text-[10px] text-purple-300/70 font-semibold uppercase">{t.paymentModal.totalGelFee}</div>
             <div className="text-2xl font-black text-white">{activeMatchForPayment.pricePerPlayerGel} {t.common.gel}</div>
             <div className="text-[10px] text-purple-300/80">{t.paymentModal.courtAndBalls}</div>
-          </div>
-
-          <div className="text-right max-w-[170px]">
-            <div className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-800/40 mb-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{t.paymentModal.fullRefund}</span>
-            </div>
-            <p className="text-[10px] text-purple-300/70 leading-tight">
-              {t.paymentModal.refundSub}
-            </p>
           </div>
         </div>
 
@@ -138,7 +124,7 @@ export const PaymentModal: React.FC = () => {
 
         {/* Option 1 Details: Bank Account Details */}
         {paymentOption === 'Bank Transfer' && (
-          <div className="p-4 rounded-2xl bg-purple-950/60 border border-purple-700/40 space-y-3.5 animate-fadeIn">
+          <div className="p-4 rounded-2xl bg-purple-950/60 border border-purple-700/40 space-y-4 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-purple-800/30 pb-2">
               <span className="text-xs font-black text-purple-200 uppercase tracking-wide flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-purple-400" />
@@ -155,27 +141,27 @@ export const PaymentModal: React.FC = () => {
               <span className="font-bold text-white">Padely Georgia</span>
             </div>
 
-            {/* IBAN Box */}
-            <div className="space-y-1">
+            {/* IBAN Box with Full-Scale Attached Copy Button */}
+            <div className="space-y-1.5">
               <span className="text-[11px] font-semibold text-purple-300/80 block">
                 {t.paymentModal.ibanLabel}:
               </span>
-              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[#090412] border border-purple-800/50">
-                <span className="font-mono text-xs font-bold text-purple-200 tracking-wider select-all">
+              <div className="rounded-2xl border border-purple-700/50 bg-[#090412] overflow-hidden shadow-inner">
+                <div className="p-3.5 text-center sm:text-left font-mono text-sm sm:text-base font-bold text-purple-200 tracking-wider select-all border-b border-purple-900/50">
                   {ibanNumber}
-                </span>
+                </div>
                 <button
                   onClick={handleCopyIban}
-                  className="px-2.5 py-1 rounded-lg bg-purple-800/50 hover:bg-purple-700 text-purple-200 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0"
+                  className="w-full py-3 px-4 bg-purple-800/70 hover:bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
                 >
                   {copiedIban ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-4 h-4 text-emerald-400" />
                       <span className="text-emerald-400">{t.paymentModal.copied}</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                       <span>{t.paymentModal.copyIban}</span>
                     </>
                   )}
@@ -183,28 +169,28 @@ export const PaymentModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Transaction Description Notice */}
-            <div className="p-3 rounded-xl bg-purple-900/40 border border-purple-600/40 space-y-2">
+            {/* Transaction Description Box with Full-Scale Attached Copy Button */}
+            <div className="space-y-1.5 pt-1">
               <p className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                 <span>⚠️ {t.paymentModal.purposeNotice}</span>
               </p>
               
-              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[#090412] border border-amber-500/30">
-                <span className="font-mono text-xs font-black text-amber-300 tracking-wide select-all">
+              <div className="rounded-2xl border border-amber-500/40 bg-[#090412] overflow-hidden shadow-inner">
+                <div className="p-3.5 text-center sm:text-left font-mono text-sm sm:text-base font-black text-amber-300 tracking-wide select-all border-b border-amber-500/20">
                   {transactionPurpose}
-                </span>
+                </div>
                 <button
                   onClick={handleCopyPurpose}
-                  className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0"
+                  className="w-full py-3 px-4 bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
                 >
                   {copiedPurpose ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-4 h-4 text-emerald-400" />
                       <span className="text-emerald-400">{t.paymentModal.copied}</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                       <span>{t.paymentModal.copyPurpose}</span>
                     </>
                   )}

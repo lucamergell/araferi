@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Shield, User as UserIcon, Trophy, Calendar, LogIn, LogOut, Globe } from 'lucide-react';
 import { formatDisplayName } from '../utils/formatters';
+import padelyLogo from '../assets/images/Padely.png';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -27,13 +28,16 @@ export const Navbar: React.FC = () => {
         {/* Brand Logo */}
         <div 
           onClick={() => setCurrentView('landing')}
-          className="cursor-pointer select-none flex items-center gap-2"
+          className="cursor-pointer select-none flex items-center gap-2.5"
         >
+          <img 
+            src={padelyLogo} 
+            alt="Padely Logo" 
+            referrerPolicy="no-referrer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-purple-400/40 shadow-md shadow-purple-900/50" 
+          />
           <span className="text-xl font-black tracking-widest text-white hover:text-purple-300 transition-colors uppercase font-sans">
             PADELY.GE
-          </span>
-          <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-900/60 border border-purple-500/30 text-purple-300">
-            {t.nav.city}
           </span>
         </div>
 
