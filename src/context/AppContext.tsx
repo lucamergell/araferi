@@ -717,6 +717,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addPlaceholderPlayer = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can manage placeholder players.', 'error');
+      return;
+    }
     const targetMatch = matches.find(m => m.id === matchId);
     if (!targetMatch) return;
     if (targetMatch.joinedUserIds.length >= targetMatch.totalSpots) {
@@ -740,6 +744,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const fillMatchWithPlaceholders = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can manage placeholder players.', 'error');
+      return;
+    }
     const targetMatch = matches.find(m => m.id === matchId);
     if (!targetMatch) return;
 
@@ -769,6 +777,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const removePlayerFromMatch = async (matchId: string, userId: string) => {
+    if (currentUser?.role !== 'admin' && currentUser?.id !== userId) {
+      showNotification('Only admins can remove players from matches.', 'error');
+      return;
+    }
     const targetMatch = matches.find(m => m.id === matchId);
     if (!targetMatch) return;
 
@@ -788,6 +800,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const clearPlaceholdersFromMatch = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can manage placeholder players.', 'error');
+      return;
+    }
     const targetMatch = matches.find(m => m.id === matchId);
     if (!targetMatch) return;
 

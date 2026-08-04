@@ -141,36 +141,40 @@ export const MatchDetailModal: React.FC = () => {
               </h4>
 
               <div className="flex items-center gap-2">
-                {emptySpotsCount > 0 && (
+                {currentUser?.role === 'admin' && (
                   <>
-                    <button
-                      onClick={() => addPlaceholderPlayer(match.id)}
-                      className="px-2.5 py-1 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-[11px] font-bold border border-purple-600/40 flex items-center gap-1 transition-all cursor-pointer"
-                      title="Add single placeholder user"
-                    >
-                      <UserPlus className="w-3.5 h-3.5 text-purple-400" />
-                      <span>+ Placeholder</span>
-                    </button>
-                    <button
-                      onClick={() => fillMatchWithPlaceholders(match.id)}
-                      className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold shadow-md flex items-center gap-1 transition-all cursor-pointer"
-                      title="Fill all empty spots with placeholder players"
-                    >
-                      <Bot className="w-3.5 h-3.5 text-purple-300" />
-                      <span>Fill Game</span>
-                    </button>
-                  </>
-                )}
+                    {emptySpotsCount > 0 && (
+                      <>
+                        <button
+                          onClick={() => addPlaceholderPlayer(match.id)}
+                          className="px-2.5 py-1 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-[11px] font-bold border border-purple-600/40 flex items-center gap-1 transition-all cursor-pointer"
+                          title="Add single placeholder user"
+                        >
+                          <UserPlus className="w-3.5 h-3.5 text-purple-400" />
+                          <span>+ Placeholder</span>
+                        </button>
+                        <button
+                          onClick={() => fillMatchWithPlaceholders(match.id)}
+                          className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold shadow-md flex items-center gap-1 transition-all cursor-pointer"
+                          title="Fill all empty spots with placeholder players"
+                        >
+                          <Bot className="w-3.5 h-3.5 text-purple-300" />
+                          <span>Fill Game</span>
+                        </button>
+                      </>
+                    )}
 
-                {match.joinedUserIds.some(id => id.startsWith('ph_') || id.startsWith('placeholder_')) && (
-                  <button
-                    onClick={() => clearPlaceholdersFromMatch(match.id)}
-                    className="px-2.5 py-1 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 text-[11px] font-bold border border-red-800/40 flex items-center gap-1 transition-all cursor-pointer"
-                    title="Clear all placeholder players from this match"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    <span>Clear Placeholders</span>
-                  </button>
+                    {match.joinedUserIds.some(id => id.startsWith('ph_') || id.startsWith('placeholder_')) && (
+                      <button
+                        onClick={() => clearPlaceholdersFromMatch(match.id)}
+                        className="px-2.5 py-1 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 text-[11px] font-bold border border-red-800/40 flex items-center gap-1 transition-all cursor-pointer"
+                        title="Clear all placeholder players from this match"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <span>Clear Placeholders</span>
+                      </button>
+                    )}
+                  </>
                 )}
 
                 <span className="text-xs text-purple-300/80 font-semibold ml-1">
@@ -209,7 +213,7 @@ export const MatchDetailModal: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
-                      {(isPlaceholder || currentUser?.role === 'admin') && (
+                      {currentUser?.role === 'admin' && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -237,26 +241,41 @@ export const MatchDetailModal: React.FC = () => {
 
               {/* Empty spots placeholders */}
               {Array.from({ length: emptySpotsCount }).map((_, i) => (
-                <div
-                  key={`spot_${i}`}
-                  onClick={() => addPlaceholderPlayer(match.id)}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/20 hover:bg-purple-900/30 border-2 border-dashed border-purple-800/30 hover:border-purple-600/50 text-purple-400/60 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-900/20 group-hover:bg-purple-800/40 flex items-center justify-center font-black text-xs text-purple-300 transition-all">
+                currentUser?.role === 'admin' ? (
+                  <div
+                    key={`spot_${i}`}
+                    onClick={() => addPlaceholderPlayer(match.id)}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/20 hover:bg-purple-900/30 border-2 border-dashed border-purple-800/30 hover:border-purple-600/50 text-purple-400/60 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-900/20 group-hover:bg-purple-800/40 flex items-center justify-center font-black text-xs text-purple-300 transition-all">
+                        +{i + 1}
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-purple-300/80 group-hover:text-purple-200">{t.matchDetails.openSpot}</div>
+                        <div className="text-[10px] text-purple-400/60 group-hover:text-purple-300">Click to add placeholder player</div>
+                      </div>
+                    </div>
+
+                    <span className="text-xs font-bold px-2 py-1 rounded-lg bg-purple-900/40 text-purple-300 border border-purple-700/40 opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                      <UserPlus className="w-3 h-3" />
+                      Add
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    key={`spot_${i}`}
+                    className="flex items-center gap-3 p-3 rounded-2xl bg-purple-950/20 border-2 border-dashed border-purple-800/30 text-purple-400/60"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-purple-900/20 flex items-center justify-center font-black text-xs">
                       +{i + 1}
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-purple-300/80 group-hover:text-purple-200">{t.matchDetails.openSpot}</div>
-                      <div className="text-[10px] text-purple-400/60 group-hover:text-purple-300">Click to add placeholder player</div>
+                      <div className="text-xs font-semibold text-purple-300/70">{t.matchDetails.openSpot}</div>
+                      <div className="text-[10px] text-purple-400/50">{t.matchDetails.waitingForPlayer}</div>
                     </div>
                   </div>
-
-                  <span className="text-xs font-bold px-2 py-1 rounded-lg bg-purple-900/40 text-purple-300 border border-purple-700/40 opacity-80 group-hover:opacity-100 flex items-center gap-1">
-                    <UserPlus className="w-3 h-3" />
-                    Add
-                  </span>
-                </div>
+                )
               ))}
             </div>
           </div>
