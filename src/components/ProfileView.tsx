@@ -20,15 +20,6 @@ export const ProfileView: React.FC = () => {
 
   const isOwnProfile = currentUser?.id === profileUser.id;
 
-  const isPlaceholderUser = profileUser.isPlaceholder || profileUser.id.startsWith('ph_') || profileUser.id.startsWith('placeholder_') || profileUser.email?.endsWith('@placeholder.padely.ge');
-
-  const realUsersSorted = users
-    .filter(u => !u.isPlaceholder && !u.id.startsWith('ph_') && !u.id.startsWith('placeholder_') && !u.email?.endsWith('@placeholder.padely.ge'))
-    .sort((a, b) => (b.stats?.padelyPoints ?? b.stats?.skillRating ?? 1000) - (a.stats?.padelyPoints ?? a.stats?.skillRating ?? 1000));
-
-  const userRankIdx = realUsersSorted.findIndex(u => u.id === profileUser.id);
-  const displayRank = isPlaceholderUser ? '-' : (userRankIdx >= 0 ? userRankIdx + 1 : (profileUser.stats.rankingPosition || 1));
-
   const stats = profileUser.stats;
 
   return (
@@ -43,12 +34,10 @@ export const ProfileView: React.FC = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(147,51,234,0.35),transparent)]"></div>
             
             {/* Rank Position Badge */}
-            {!isPlaceholderUser && (
-              <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-pill text-xs font-bold text-amber-300 shadow-xl border border-amber-500/30">
-                <Trophy className="w-4 h-4 text-amber-400" />
-                <span>{t.profile.rankBadge} #{displayRank}</span>
-              </div>
-            )}
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-pill text-xs font-bold text-amber-300 shadow-xl border border-amber-500/30">
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span>{t.profile.rankBadge} #{stats.rankingPosition}</span>
+            </div>
           </div>
 
           {/* Avatar & Main Info */}

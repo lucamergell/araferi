@@ -49,7 +49,6 @@ export interface User {
   stats: PlayerStats;
   matchHistory: MatchHistoryItem[];
   role: 'user' | 'admin';
-  isPlaceholder?: boolean;
   isProfileComplete?: boolean;
   createdAt: string;
 }

@@ -58,7 +58,7 @@ export const translations = {
       price: 'ფასი',
       perPlayer: 'მოთამაშეზე',
       districtTbilisi: 'თბილისი',
-      refundGuarantee: 'ფასში შედის:',
+      refundGuarantee: 'შედის:',
       refundSub: '4 ჩოგანი და 3 ბურთი.',
     },
 
