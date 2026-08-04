@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Shield, User as UserIcon, Trophy, Calendar, LogIn, LogOut, Globe } from 'lucide-react';
 import { formatDisplayName } from '../utils/formatters';
+import { UserAvatar } from './UserAvatar';
 import padelyLogo from '../assets/images/Padely.png';
 
 export const Navbar: React.FC = () => {
@@ -107,23 +108,9 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => openUserProfile(currentUser.id)}
                 title={`${t.nav.profile} (${formatDisplayName(currentUser.name)})`}
-                className="w-9 h-9 rounded-xl glass-pill hover:bg-white/20 border border-white/20 transition-all flex items-center justify-center shrink-0 cursor-pointer overflow-hidden shadow-md"
+                className="w-9 h-9 rounded-xl border border-white/20 transition-all flex items-center justify-center shrink-0 cursor-pointer overflow-hidden shadow-md hover:scale-105"
               >
-                {currentUser.avatar ? (
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                    className="w-full h-full rounded-[10px] object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-[10px] bg-gradient-to-tr from-purple-700 to-indigo-600 font-bold text-xs flex items-center justify-center text-white">
-                    {currentUser.name?.[0]?.toUpperCase() || 'P'}
-                  </div>
-                )}
+                <UserAvatar name={currentUser.name} className="w-full h-full rounded-xl text-xs font-bold" />
               </button>
 
               <button

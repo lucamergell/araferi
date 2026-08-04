@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Match, SkillLevel } from '../types';
-import { X, Calendar, Clock, MapPin, Plus, DollarSign } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Plus, DollarSign, Globe, Image as ImageIcon, Link as LinkIcon, Sparkles } from 'lucide-react';
+import { formatDateDDMMYYYY, getLocalizedDayOfWeek } from '../utils/formatters';
+
+const PRESET_BANNERS = [
+  { name: 'Lisi Court', url: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800' },
+  { name: 'Sunset Match', url: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&q=80&w=800' },
+  { name: 'Indoor Arena', url: 'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&q=80&w=800' },
+  { name: 'Pro Game', url: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=800' },
+];
 
 interface CreateMatchModalProps {
   onClose: () => void;
@@ -13,56 +21,62 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
   const { createMatch, updateMatch } = useApp();
   const { t } = useLanguage();
 
-  const [title, setTitle] = useState(matchToEdit?.title || t.createMatchModal.defaultTitle);
-  const [locationName, setLocationName] = useState(matchToEdit?.locationName || t.createMatchModal.defaultClub);
+  const [titleKa, setTitleKa] = useState(matchToEdit?.titleKa || matchToEdit?.title || t.createMatchModal.defaultTitleKa);
+  const [titleEn, setTitleEn] = useState(matchToEdit?.titleEn || matchToEdit?.title || t.createMatchModal.defaultTitleEn);
+
+  const [locationNameKa, setLocationNameKa] = useState(matchToEdit?.locationNameKa || matchToEdit?.locationName || t.createMatchModal.defaultClubKa);
+  const [locationNameEn, setLocationNameEn] = useState(matchToEdit?.locationNameEn || matchToEdit?.locationName || t.createMatchModal.defaultClubEn);
+
   const [address, setAddress] = useState(matchToEdit?.address || t.createMatchModal.defaultAddress);
   const [district, setDistrict] = useState(matchToEdit?.district || 'Lisi');
+  
   const [date, setDate] = useState(matchToEdit?.date || new Date().toISOString().split('T')[0]);
-  const [dayOfWeek, setDayOfWeek] = useState(matchToEdit?.dayOfWeek || t.createMatchModal.dayThursday);
   const [startTime, setStartTime] = useState(matchToEdit?.startTime || '18:00');
   const [durationMinutes, setDurationMinutes] = useState(matchToEdit?.durationMinutes || 90);
   const [totalSpots, setTotalSpots] = useState(matchToEdit?.totalSpots || 4);
   const [skillLevelRequired, setSkillLevelRequired] = useState<SkillLevel>(matchToEdit?.skillLevelRequired || 'Intermediate');
   const [courtCostGel, setCourtCostGel] = useState(matchToEdit?.courtCostGel || 80);
   const [pricePerPlayerGel, setPricePerPlayerGel] = useState(matchToEdit?.pricePerPlayerGel || 25);
-  const [description, setDescription] = useState(matchToEdit?.description || t.createMatchModal.defaultDesc);
+  
+  const [imageUrl, setImageUrl] = useState(
+    matchToEdit?.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const dayKa = getLocalizedDayOfWeek(date, 'ka');
+    const dayEn = getLocalizedDayOfWeek(date, 'en');
+
+    const matchPayload = {
+      title: titleKa || titleEn,
+      titleKa: titleKa || titleEn,
+      titleEn: titleEn || titleKa,
+      locationName: locationNameKa || locationNameEn,
+      locationNameKa: locationNameKa || locationNameEn,
+      locationNameEn: locationNameEn || locationNameKa,
+      address,
+      district,
+      date,
+      dayOfWeek: dayEn,
+      dayOfWeekKa: dayKa,
+      dayOfWeekEn: dayEn,
+      startTime,
+      durationMinutes,
+      totalSpots,
+      skillLevelRequired,
+      courtCostGel,
+      pricePerPlayerGel,
+      description: '',
+      descriptionKa: '',
+      descriptionEn: '',
+      imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800',
+    };
+
     if (matchToEdit) {
-      updateMatch(matchToEdit.id, {
-        title,
-        locationName,
-        address,
-        district,
-        date,
-        dayOfWeek,
-        startTime,
-        durationMinutes,
-        totalSpots,
-        skillLevelRequired,
-        courtCostGel,
-        pricePerPlayerGel,
-        description,
-      });
+      updateMatch(matchToEdit.id, matchPayload);
     } else {
-      createMatch({
-        title,
-        locationName,
-        address,
-        district,
-        date,
-        dayOfWeek,
-        startTime,
-        durationMinutes,
-        totalSpots,
-        skillLevelRequired,
-        courtCostGel,
-        pricePerPlayerGel,
-        description,
-        imageUrl: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800',
-      });
+      createMatch(matchPayload);
     }
 
     onClose();
@@ -70,6 +84,9 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
 
   const calculatedRevenue = totalSpots * pricePerPlayerGel;
   const calculatedMargin = calculatedRevenue - courtCostGel;
+  const formattedDisplayDate = formatDateDDMMYYYY(date);
+  const computedDayKa = getLocalizedDayOfWeek(date, 'ka');
+  const computedDayEn = getLocalizedDayOfWeek(date, 'en');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
@@ -77,8 +94,12 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
-          <h3 className="text-lg font-black text-white">
-            {matchToEdit ? t.createMatchModal.titleEdit : t.createMatchModal.titleCreate}
+          <h3 className="text-lg font-black text-white flex items-center gap-2">
+            <span>{matchToEdit ? t.createMatchModal.titleEdit : t.createMatchModal.titleCreate}</span>
+            <span className="text-xs font-normal text-purple-300/60 bg-purple-950/60 border border-purple-800/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Globe className="w-3 h-3 text-purple-400" />
+              <span>KA & EN</span>
+            </span>
           </h3>
           <button onClick={onClose} className="p-2 rounded-full bg-purple-950/50 hover:bg-purple-900/60 text-purple-300">
             <X className="w-5 h-5" />
@@ -87,27 +108,67 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.matchTitle}</label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
+          {/* Match Title (Bilingual) */}
+          <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
+            <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
+              <Globe className="w-3.5 h-3.5 text-purple-400" />
+              <span>{t.createMatchModal.matchTitle}</span>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇪 {t.createMatchModal.matchTitleKa}</label>
+                <input
+                  type="text"
+                  required
+                  value={titleKa}
+                  onChange={e => setTitleKa(e.target.value)}
+                  placeholder="მაგ: ლისის საღამოს პადელის თამაში"
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇧 {t.createMatchModal.matchTitleEn}</label>
+                <input
+                  type="text"
+                  required
+                  value={titleEn}
+                  onChange={e => setTitleEn(e.target.value)}
+                  placeholder="e.g. Lisi Evening Padel Match"
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+          </div>
 
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.clubLocation}</label>
-              <input
-                type="text"
-                required
-                value={locationName}
-                onChange={e => setLocationName(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
+          {/* Location Name (Bilingual) */}
+          <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
+            <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-purple-400" />
+              <span>{t.createMatchModal.clubLocation}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇪 {t.createMatchModal.clubLocationKa}</label>
+                <input
+                  type="text"
+                  required
+                  value={locationNameKa}
+                  onChange={e => setLocationNameKa(e.target.value)}
+                  placeholder="მაგ: ლისი პადელ კლუბი"
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇧 {t.createMatchModal.clubLocationEn}</label>
+                <input
+                  type="text"
+                  required
+                  value={locationNameEn}
+                  onChange={e => setLocationNameEn(e.target.value)}
+                  placeholder="e.g. Lisi Padel Club"
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
             </div>
           </div>
 
@@ -119,11 +180,11 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
                 onChange={e => setDistrict(e.target.value)}
                 className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
               >
-                <option value="Lisi">Lisi Lake</option>
-                <option value="Saburtalo">Saburtalo</option>
-                <option value="Vake">Vake</option>
-                <option value="Dighomi">Dighomi</option>
-                <option value="Mtatsminda">Mtatsminda</option>
+                <option value="Lisi">Lisi Lake (ლისი)</option>
+                <option value="Saburtalo">Saburtalo (საბურთალო)</option>
+                <option value="Vake">Vake (ვაკე)</option>
+                <option value="Dighomi">Dighomi (დიღომი)</option>
+                <option value="Mtatsminda">Mtatsminda (მთაწმინდა)</option>
               </select>
             </div>
 
@@ -139,50 +200,50 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
           </div>
 
-          {/* Date & Time */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.date}</label>
-              <input
-                type="date"
-                required
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
+          {/* Date Selection with dd.mm.yyyy preview */}
+          <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-purple-300/80 font-bold flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                <span>{t.createMatchModal.date}</span>
+              </label>
+              <span className="text-xs font-black text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
+                {formattedDisplayDate} ({computedDayKa} / {computedDayEn})
+              </span>
             </div>
 
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.dayOfWeek}</label>
-              <input
-                type="text"
-                required
-                value={dayOfWeek}
-                onChange={e => setDayOfWeek(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div>
+                <input
+                  type="date"
+                  required
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.startTime}</label>
-              <input
-                type="time"
-                required
-                value={startTime}
-                onChange={e => setStartTime(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
-            </div>
+              <div>
+                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">{t.createMatchModal.startTime}</label>
+                <input
+                  type="time"
+                  required
+                  value={startTime}
+                  onChange={e => setStartTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.durationMins}</label>
-              <input
-                type="number"
-                required
-                value={durationMinutes}
-                onChange={e => setDurationMinutes(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
+              <div>
+                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">{t.createMatchModal.durationMins}</label>
+                <input
+                  type="number"
+                  required
+                  value={durationMinutes}
+                  onChange={e => setDurationMinutes(Number(e.target.value))}
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
             </div>
           </div>
 
@@ -235,32 +296,90 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
             </div>
           </div>
 
-          {/* Skill Level & Description */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.skillRequired}</label>
-              <select
-                value={skillLevelRequired}
-                onChange={e => setSkillLevelRequired(e.target.value as SkillLevel)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none"
-              >
-                <option value="Beginner">{t.common.beginner}</option>
-                <option value="Intermediate">{t.common.intermediate}</option>
-                <option value="Advanced">{t.common.advanced}</option>
-                <option value="Pro">{t.common.pro}</option>
-              </select>
+          {/* Difficulty / Skill Level */}
+          <div>
+            <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.skillRequired}</label>
+            <select
+              value={skillLevelRequired}
+              onChange={e => setSkillLevelRequired(e.target.value as SkillLevel)}
+              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none font-semibold"
+            >
+              <option value="Beginner">Beginner / დამწყები</option>
+              <option value="Intermediate">Intermediate / საშუალო</option>
+              <option value="Advanced">Advanced / მაღალი</option>
+              <option value="Expert">Expert / ექსპერტი</option>
+              <option value="Pro">Pro / პრო</option>
+              <option value="Open to All">Open to All / ყველასთვის</option>
+            </select>
+          </div>
+
+          {/* Banner Image URL (Individual Match Banner) */}
+          <div className="p-3.5 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-purple-400" />
+                <span>{t.createMatchModal.bannerImageUrl}</span>
+              </div>
+              <span className="text-[10px] text-purple-300/60 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>Card Cover</span>
+              </span>
             </div>
 
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.description}</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
+              </div>
               <input
-                type="text"
+                type="url"
                 required
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none"
+                value={imageUrl}
+                onChange={e => setImageUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="w-full pl-9 pr-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white text-xs focus:outline-none focus:border-purple-500"
               />
             </div>
+
+            {/* Quick Presets */}
+            <div className="space-y-1">
+              <div className="text-[10px] font-semibold text-purple-300/70">Quick Presets:</div>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_BANNERS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => setImageUrl(preset.url)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                      imageUrl === preset.url
+                        ? 'bg-purple-600 border-purple-400 text-white shadow-md'
+                        : 'bg-purple-950/50 border-purple-800/40 text-purple-300 hover:bg-purple-900/60'
+                    }`}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Live Banner Preview */}
+            {imageUrl && (
+              <div className="relative h-24 w-full rounded-xl overflow-hidden border border-purple-800/40 mt-2">
+                <img
+                  src={imageUrl}
+                  alt="Banner preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback on broken image link
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-2.5">
+                  <span className="text-[10px] font-bold text-white bg-purple-950/80 px-2 py-0.5 rounded-md border border-purple-700/50">
+                    Live Card Banner Preview
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit */}
@@ -277,3 +396,4 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
     </div>
   );
 };
+

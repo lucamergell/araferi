@@ -1,8 +1,9 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2 } from 'lucide-react';
-import { formatDisplayName } from '../utils/formatters';
+import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info } from 'lucide-react';
+import { formatDisplayName, getLocalizedMatch } from '../utils/formatters';
+import { UserAvatar } from './UserAvatar';
 
 export const MatchDetailModal: React.FC = () => {
   const { 
@@ -16,12 +17,14 @@ export const MatchDetailModal: React.FC = () => {
     showNotification
   } = useApp();
 
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   if (!selectedMatchId) return null;
 
   const match = matches.find(m => m.id === selectedMatchId);
   if (!match) return null;
+
+  const localized = getLocalizedMatch(match, language);
 
   const closeModal = () => openMatchDetails('');
 
@@ -46,7 +49,7 @@ export const MatchDetailModal: React.FC = () => {
         <div className="relative h-48 sm:h-56 w-full">
           <img
             src={match.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'}
-            alt={match.locationName}
+            alt={localized.locationName}
             className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#120a21] via-[#120a21]/60 to-transparent"></div>
@@ -76,16 +79,16 @@ export const MatchDetailModal: React.FC = () => {
                 {match.district}, {t.matchCard.districtTbilisi}
               </span>
               <span className="px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 text-[11px] font-bold">
-                {match.skillLevelRequired}
+                {localized.skillLevel}
               </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
-              {match.title}
+              {localized.title}
             </h2>
             <p className="text-xs text-purple-200/90 font-medium flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <span>{match.address}</span>
+              <span>{localized.locationName} • {localized.address}</span>
             </p>
           </div>
         </div>
@@ -101,7 +104,7 @@ export const MatchDetailModal: React.FC = () => {
                 <span>{t.matchDetails.date}</span>
               </div>
               <div className="text-sm font-bold text-white mt-1">
-                {match.dayOfWeek}, {match.date}
+                {localized.dayOfWeek}, {localized.formattedDate}
               </div>
             </div>
 
@@ -149,11 +152,7 @@ export const MatchDetailModal: React.FC = () => {
                   className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/30 cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <img
-                      src={player.avatar}
-                      alt={player.name}
-                      className="w-10 h-10 rounded-xl object-cover ring-2 ring-purple-500/40"
-                    />
+                    <UserAvatar name={player.name} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-500/40" />
                     <div>
                       <div className="text-xs font-bold text-white flex items-center gap-1">
                         <span>{formatDisplayName(player.name)}</span>
@@ -162,7 +161,7 @@ export const MatchDetailModal: React.FC = () => {
                         )}
                       </div>
                       <div className="text-[10px] text-purple-300/70">
-                        {player.skillLevel} • ELO: {player.stats.skillRating}
+                        {player.skillLevel} • {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
                       </div>
                     </div>
                   </div>

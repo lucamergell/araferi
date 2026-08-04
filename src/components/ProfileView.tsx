@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { EditProfileModal } from './EditProfileModal';
 import { formatDisplayName } from '../utils/formatters';
+import { UserAvatar } from './UserAvatar';
 import { 
   Trophy, MapPin, Calendar, Flame, Clock, Users, ShieldCheck, 
   Award, TrendingUp, CheckCircle2, XCircle, Settings, Edit3, Target
@@ -43,10 +44,9 @@ export const ProfileView: React.FC = () => {
           <div className="px-6 pb-6 pt-0 relative flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20">
             
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-              <img
-                src={profileUser.avatar}
-                alt={profileUser.name}
-                className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 ring-[#07040d] shadow-2xl border-2 border-purple-400/60"
+              <UserAvatar
+                name={profileUser.name}
+                className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl ring-4 ring-[#07040d] shadow-2xl border-2 border-purple-400/60 text-4xl sm:text-5xl font-black"
               />
 
               <div className="space-y-1">
@@ -91,18 +91,11 @@ export const ProfileView: React.FC = () => {
           </div>
 
           {/* Playing Preferences Bar */}
-          <div className="px-6 py-4 bg-white/5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="px-6 py-4 bg-white/5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-purple-300 font-bold">{t.profile.position}:</span>
               <span className="glass-pill px-3 py-1 rounded-full text-white font-semibold">
                 {profileUser.preferredPosition}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-purple-300 font-bold">{t.profile.playingStyle}:</span>
-              <span className="glass-pill px-3 py-1 rounded-full text-white font-semibold line-clamp-1">
-                {profileUser.playingStyle}
               </span>
             </div>
 

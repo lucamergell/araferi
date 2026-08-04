@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Trophy, Award, Flame, Search, Filter, ArrowUpRight, Medal } from 'lucide-react';
 import { formatDisplayName } from '../utils/formatters';
+import { UserAvatar } from './UserAvatar';
 
 export const RankingsView: React.FC = () => {
   const { users, openUserProfile } = useApp();
@@ -126,10 +127,9 @@ export const RankingsView: React.FC = () => {
                   <Medal className="w-3 h-3 text-slate-800" />
                   <span>{t.rankings.secondPlace}</span>
                 </div>
-                <img
-                  src={top2.avatar}
-                  alt={top2.name}
-                  className="w-20 h-20 rounded-2xl object-cover mx-auto ring-4 ring-slate-400/50 shadow-xl"
+                <UserAvatar
+                  name={top2.name}
+                  className="w-20 h-20 rounded-2xl mx-auto ring-4 ring-slate-400/50 shadow-xl text-2xl font-black"
                 />
                 <div>
                   <h3 className="font-bold text-white text-sm line-clamp-1">{formatDisplayName(top2.name)}</h3>
@@ -151,10 +151,9 @@ export const RankingsView: React.FC = () => {
                   <Trophy className="w-3.5 h-3.5 text-amber-900" />
                   <span>{t.rankings.champion}</span>
                 </div>
-                <img
-                  src={top1.avatar}
-                  alt={top1.name}
-                  className="w-24 h-24 rounded-2xl object-cover mx-auto ring-4 ring-amber-400/70 shadow-2xl"
+                <UserAvatar
+                  name={top1.name}
+                  className="w-24 h-24 rounded-2xl mx-auto ring-4 ring-amber-400/70 shadow-2xl text-3xl font-black"
                 />
                 <div>
                   <h3 className="font-black text-white text-base line-clamp-1">{formatDisplayName(top1.name)}</h3>
@@ -176,10 +175,9 @@ export const RankingsView: React.FC = () => {
                   <Medal className="w-3 h-3 text-amber-300" />
                   <span>{t.rankings.thirdPlace}</span>
                 </div>
-                <img
-                  src={top3.avatar}
-                  alt={top3.name}
-                  className="w-20 h-20 rounded-2xl object-cover mx-auto ring-4 ring-amber-700/50 shadow-xl"
+                <UserAvatar
+                  name={top3.name}
+                  className="w-20 h-20 rounded-2xl mx-auto ring-4 ring-amber-700/50 shadow-xl text-2xl font-black"
                 />
                 <div>
                   <h3 className="font-bold text-white text-sm line-clamp-1">{formatDisplayName(top3.name)}</h3>
@@ -220,10 +218,9 @@ export const RankingsView: React.FC = () => {
                       {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
                     </div>
 
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-10 h-10 rounded-xl object-cover ring-2 ring-purple-600/30"
+                    <UserAvatar
+                      name={user.name}
+                      className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-600/30"
                     />
 
                     <div>

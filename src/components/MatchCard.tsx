@@ -3,7 +3,8 @@ import { Match } from '../types';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { MapPin, Calendar, Clock, ShieldCheck, Users, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { formatDisplayName } from '../utils/formatters';
+import { formatDisplayName, getLocalizedMatch } from '../utils/formatters';
+import { UserAvatar } from './UserAvatar';
 
 interface MatchCardProps {
   match: Match;
@@ -12,7 +13,9 @@ interface MatchCardProps {
 
 export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) => {
   const { users, currentUser, startJoinMatchFlow } = useApp();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+
+  const localized = getLocalizedMatch(match, language);
 
   const joinedPlayers = users.filter(u => match.joinedUserIds.includes(u.id));
   const emptySpotsCount = Math.max(0, match.totalSpots - match.joinedUserIds.length);
@@ -42,7 +45,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
         <div className="relative h-36 w-full overflow-hidden rounded-t-3xl isolate">
           <img
             src={match.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'}
-            alt={match.locationName}
+            alt={localized.locationName}
             className="w-full h-full object-cover opacity-70 group-hover:opacity-85 group-hover:scale-[1.03] transition-all duration-300 ease-out transform-gpu pointer-events-none"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0e071c] via-[#0e071c]/40 to-transparent"></div>
@@ -55,16 +58,16 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
 
           {/* Skill Level Badge */}
           <div className={`absolute top-3 right-3 px-3 py-1 rounded-full border text-[11px] font-bold backdrop-blur-md ${getSkillBadgeColor(match.skillLevelRequired)}`}>
-            {match.skillLevelRequired}
+            {localized.skillLevel}
           </div>
 
           {/* Match Title & Location */}
           <div className="absolute bottom-2 left-3.5 right-3.5">
             <h3 className="text-base font-bold text-white leading-tight line-clamp-1 group-hover:text-purple-300 transition-colors">
-              {match.title}
+              {localized.title}
             </h3>
             <p className="text-xs text-purple-200/90 font-medium flex items-center gap-1 mt-0.5">
-              <span>📍</span> {match.locationName}
+              <span>📍</span> {localized.locationName}
             </p>
           </div>
         </div>
@@ -74,7 +77,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
           <div className="flex items-center justify-between text-xs text-purple-200/90 glass-pill p-2.5 rounded-2xl">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-purple-400" />
-              <span className="font-semibold text-white">{match.dayOfWeek}, {match.date}</span>
+              <span className="font-semibold text-white">{localized.dayOfWeek}, {localized.formattedDate}</span>
             </div>
             <div className="flex items-center gap-1.5 font-medium">
               <Clock className="w-3.5 h-3.5 text-purple-400" />
@@ -98,13 +101,12 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
               {/* Joined User Avatars */}
               <div className="flex -space-x-2 overflow-hidden">
                 {joinedPlayers.map((player) => (
-                  <img
-                    key={player.id}
-                    src={player.avatar}
-                    alt={formatDisplayName(player.name)}
-                    title={`${formatDisplayName(player.name)} (${player.skillLevel})`}
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-500/40 object-cover"
-                  />
+                  <div key={player.id} title={`${formatDisplayName(player.name)} (${player.skillLevel})`}>
+                    <UserAvatar
+                      name={player.name}
+                      className="inline-flex h-8 w-8 rounded-full ring-2 ring-purple-500/40 text-xs font-bold"
+                    />
+                  </div>
                 ))}
 
                 {/* Empty Spots Placeholders */}
@@ -127,9 +129,9 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
             </div>
           </div>
 
-          {/* Refund Notice Badge */}
-          <div className="flex items-start gap-1.5 text-[11px] glass-pill p-2.5 rounded-2xl text-purple-200/90">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          {/* Included Equipment Badge */}
+          <div className="flex items-center gap-1.5 text-[11px] glass-pill p-2.5 rounded-2xl text-purple-200/90">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <p className="leading-tight">
               <span className="font-semibold text-emerald-300">{t.matchCard.refundGuarantee}</span> {t.matchCard.refundSub}
             </p>

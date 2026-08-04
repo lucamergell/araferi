@@ -20,7 +20,7 @@ export const PaymentModal: React.FC = () => {
 
   if (!isPaymentModalOpen || !activeMatchForPayment) return null;
 
-  const ibanNumber = 'GE88TB7712336080100010';
+  const ibanNumber = 'GE73BG0000000611895381';
   const matchLocationLabel = activeMatchForPayment.district || activeMatchForPayment.locationName || 'Tbilisi';
   const transactionPurpose = `Padely (${matchLocationLabel})`;
 

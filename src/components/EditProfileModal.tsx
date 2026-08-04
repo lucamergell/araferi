@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { User, SkillLevel, PlayingPosition, PlayingStyle } from '../types';
+import { User, SkillLevel, PlayingPosition } from '../types';
 import { X, Save } from 'lucide-react';
 
 interface EditProfileModalProps {
@@ -18,7 +18,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
   const [location, setLocation] = useState(user.location);
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(user.skillLevel);
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(user.preferredPosition);
-  const [playingStyle, setPlayingStyle] = useState<PlayingStyle>(user.playingStyle);
   const [bio, setBio] = useState(user.bio || '');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,7 +29,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
       location,
       skillLevel,
       preferredPosition,
-      playingStyle,
       bio,
     });
 
@@ -101,34 +99,17 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.preferredPosition}</label>
-              <select
-                value={preferredPosition}
-                onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              >
-                <option value="Left / Drive">{t.profileModal.leftDrive}</option>
-                <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
-                <option value="Flexible">{t.profileModal.flexible}</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.playingStyle}</label>
-              <select
-                value={playingStyle}
-                onChange={e => setPlayingStyle(e.target.value as PlayingStyle)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              >
-                <option value="Aggressive Net Specialist">{t.profileModal.netSpecialist}</option>
-                <option value="Control & Lob Master">{t.profileModal.controlMaster}</option>
-                <option value="Defensive Counter-attacker">{t.profileModal.defensive}</option>
-                <option value="Tactical All-Rounder">{t.profileModal.tactical}</option>
-                <option value="Power Smasher">{t.profileModal.powerSmasher}</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.preferredPosition}</label>
+            <select
+              value={preferredPosition}
+              onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
+              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+            >
+              <option value="Left / Drive">{t.profileModal.leftDrive}</option>
+              <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
+              <option value="Flexible">{t.profileModal.flexible}</option>
+            </select>
           </div>
 
           <div>

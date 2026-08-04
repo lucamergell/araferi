@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { User, SkillLevel, PlayingPosition, PlayingStyle } from '../types';
+import { User, SkillLevel, PlayingPosition } from '../types';
+import { UserAvatar } from './UserAvatar';
 import { X, Save, Trophy, Sliders } from 'lucide-react';
 
 interface AdminEditPlayerModalProps {
@@ -21,7 +22,6 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
 
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(user.skillLevel);
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(user.preferredPosition);
-  const [playingStyle, setPlayingStyle] = useState<PlayingStyle>(user.playingStyle);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +42,6 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
     updatePlayerProfile(user.id, {
       skillLevel,
       preferredPosition,
-      playingStyle,
     });
 
     onClose();
@@ -54,11 +53,7 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
         
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
           <div className="flex items-center gap-2.5">
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-10 h-10 rounded-xl object-cover ring-2 ring-amber-500/50"
-            />
+            <UserAvatar name={user.name} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-amber-500/50" />
             <div>
               <h3 className="text-base font-black text-white">Admin Stat Adjustment</h3>
               <p className="text-xs text-amber-300/80">{user.name} ({user.email})</p>
@@ -169,34 +164,17 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
           </div>
 
           {/* Playing preferences */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Position</label>
-              <select
-                value={preferredPosition}
-                onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              >
-                <option value="Left / Drive">Left / Drive</option>
-                <option value="Right / Backhand">Right / Backhand</option>
-                <option value="Flexible">Flexible</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Playing Style</label>
-              <select
-                value={playingStyle}
-                onChange={e => setPlayingStyle(e.target.value as PlayingStyle)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              >
-                <option value="Aggressive Net Specialist">Aggressive Net Specialist</option>
-                <option value="Control & Lob Master">Control & Lob Master</option>
-                <option value="Defensive Counter-attacker">Defensive Counter-attacker</option>
-                <option value="Tactical All-Rounder">Tactical All-Rounder</option>
-                <option value="Power Smasher">Power Smasher</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-purple-300/80 font-bold mb-1">Position</label>
+            <select
+              value={preferredPosition}
+              onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
+              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+            >
+              <option value="Left / Drive">Left / Drive</option>
+              <option value="Right / Backhand">Right / Backhand</option>
+              <option value="Flexible">Flexible</option>
+            </select>
           </div>
 
           <button

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { SkillLevel, PlayingPosition, PlayingStyle } from '../types';
+import { SkillLevel, PlayingPosition } from '../types';
 import { Sparkles, Trophy } from 'lucide-react';
 
 export const OnboardingProfileModal: React.FC = () => {
@@ -18,7 +18,6 @@ export const OnboardingProfileModal: React.FC = () => {
   const [location, setLocation] = useState(currentUser?.location || 'Vake, Tbilisi');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(currentUser?.skillLevel || 'Beginner');
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(currentUser?.preferredPosition || 'Flexible');
-  const [playingStyle, setPlayingStyle] = useState<PlayingStyle>(currentUser?.playingStyle || 'Tactical All-Rounder');
   const [bio, setBio] = useState(currentUser?.bio || '');
 
   useEffect(() => {
@@ -31,7 +30,6 @@ export const OnboardingProfileModal: React.FC = () => {
       if (currentUser.location) setLocation(currentUser.location);
       if (currentUser.skillLevel) setSkillLevel(currentUser.skillLevel);
       if (currentUser.preferredPosition) setPreferredPosition(currentUser.preferredPosition);
-      if (currentUser.playingStyle) setPlayingStyle(currentUser.playingStyle);
       if (currentUser.bio) setBio(currentUser.bio);
     }
   }, [currentUser?.id]);
@@ -54,7 +52,6 @@ export const OnboardingProfileModal: React.FC = () => {
       location,
       skillLevel,
       preferredPosition,
-      playingStyle,
       bio,
       isProfileComplete: true,
     });
@@ -149,38 +146,19 @@ export const OnboardingProfileModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-purple-300/90 font-bold mb-1">
-                {t.profileModal.preferredPosition} <span className="text-amber-400">*</span>
-              </label>
-              <select
-                value={preferredPosition}
-                onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              >
-                <option value="Left / Drive">{t.profileModal.leftDrive}</option>
-                <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
-                <option value="Flexible">{t.profileModal.flexible}</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-purple-300/90 font-bold mb-1">
-                {t.profileModal.playingStyle} <span className="text-amber-400">*</span>
-              </label>
-              <select
-                value={playingStyle}
-                onChange={e => setPlayingStyle(e.target.value as PlayingStyle)}
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              >
-                <option value="Aggressive Net Specialist">{t.profileModal.netSpecialist}</option>
-                <option value="Control & Lob Master">{t.profileModal.controlMaster}</option>
-                <option value="Defensive Counter-attacker">{t.profileModal.defensive}</option>
-                <option value="Tactical All-Rounder">{t.profileModal.tactical}</option>
-                <option value="Power Smasher">{t.profileModal.powerSmasher}</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-purple-300/90 font-bold mb-1">
+              {t.profileModal.preferredPosition} <span className="text-amber-400">*</span>
+            </label>
+            <select
+              value={preferredPosition}
+              onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
+              className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            >
+              <option value="Left / Drive">{t.profileModal.leftDrive}</option>
+              <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
+              <option value="Flexible">{t.profileModal.flexible}</option>
+            </select>
           </div>
 
           <div>

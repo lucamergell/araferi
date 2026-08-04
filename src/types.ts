@@ -2,13 +2,6 @@ export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | '
 
 export type PlayingPosition = 'Left / Drive' | 'Right / Backhand' | 'Flexible';
 
-export type PlayingStyle = 
-  | 'Aggressive Net Specialist'
-  | 'Control & Lob Master'
-  | 'Defensive Counter-attacker'
-  | 'Tactical All-Rounder'
-  | 'Power Smasher';
-
 export type MatchStatus = 'Open' | 'Fully Booked' | 'Completed' | 'Cancelled';
 
 export interface PlayerStats {
@@ -22,7 +15,7 @@ export interface PlayerStats {
   matchesThisMonth: number;
   favoritePartner: string;
   rankingPosition: number;
-  skillRating: number; // ELO / Rating points
+  skillRating: number; // PadelyPoints (PP) / Rating points
   padelyPoints: number; // Competitive ranking Padely Points (Starts at 1000)
   highestPadelyPoints: number; // Highest rank achieved
   monthlyPadelyPoints: number; // Points gained in current month
@@ -50,7 +43,7 @@ export interface User {
   location: string; // e.g. "Vake, Tbilisi"
   skillLevel: SkillLevel;
   preferredPosition: PlayingPosition;
-  playingStyle: PlayingStyle;
+  playingStyle?: string;
   bio?: string;
   stats: PlayerStats;
   matchHistory: MatchHistoryItem[];
@@ -62,11 +55,19 @@ export interface User {
 export interface Match {
   id: string;
   title: string;
+  titleKa?: string;
+  titleEn?: string;
   locationName: string; // e.g. "Lisi Padel Club"
+  locationNameKa?: string;
+  locationNameEn?: string;
   address: string; // e.g. "Lisi Lake Road 4, Tbilisi"
+  addressKa?: string;
+  addressEn?: string;
   district: string; // e.g. "Lisi" | "Vake" | "Saburtalo" | "Dighomi"
   date: string; // e.g. "2026-08-05"
   dayOfWeek: string; // e.g. "Wednesday"
+  dayOfWeekKa?: string;
+  dayOfWeekEn?: string;
   startTime: string; // e.g. "18:00"
   durationMinutes: number; // e.g. 90
   totalSpots: number; // Default 4
@@ -75,6 +76,8 @@ export interface Match {
   courtCostGel: number; // e.g. 80 GEL
   pricePerPlayerGel: number; // e.g. 25 GEL
   description: string;
+  descriptionKa?: string;
+  descriptionEn?: string;
   status: MatchStatus;
   createdByAdminId: string;
   createdAt: string;

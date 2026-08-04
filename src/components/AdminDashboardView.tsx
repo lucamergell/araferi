@@ -8,6 +8,8 @@ import {
   Shield, Plus, DollarSign, Calendar, Users, TrendingUp, Edit, Trash2, 
   Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw
 } from 'lucide-react';
+import { formatDateDDMMYYYY } from '../utils/formatters';
+import { UserAvatar } from './UserAvatar';
 
 export const AdminDashboardView: React.FC = () => {
   const { 
@@ -324,7 +326,7 @@ export const AdminDashboardView: React.FC = () => {
                     >
                       <div className="flex items-center gap-2.5">
                         <span className="font-bold text-amber-400 w-4">#{idx + 1}</span>
-                        <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-lg object-cover" />
+                        <UserAvatar name={player.name} className="w-8 h-8 rounded-lg text-xs font-bold" />
                         <div>
                           <div className="font-bold text-white">{player.name}</div>
                           <div className="text-[10px] text-purple-300/70">{player.location}</div>
@@ -333,7 +335,7 @@ export const AdminDashboardView: React.FC = () => {
 
                       <div className="text-right">
                         <div className="font-bold text-white">{player.stats.totalMatches} matches</div>
-                        <div className="text-[10px] text-emerald-400">{player.stats.skillRating} ELO</div>
+                        <div className="text-[10px] text-emerald-400">{player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP</div>
                       </div>
                     </div>
                   ))}
@@ -389,14 +391,21 @@ export const AdminDashboardView: React.FC = () => {
                   <div key={m.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors">
                     
                     {/* Title & Location */}
-                    <div className="col-span-4 pr-2">
-                      <div className="font-bold text-white line-clamp-1">{m.title}</div>
-                      <div className="text-[10px] text-purple-300/70">📍 {m.locationName} ({m.district})</div>
+                    <div className="col-span-4 pr-2 flex items-center gap-2.5">
+                      <img 
+                        src={m.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'} 
+                        alt={m.title} 
+                        className="w-10 h-10 rounded-lg object-cover shrink-0 ring-1 ring-purple-600/40" 
+                      />
+                      <div>
+                        <div className="font-bold text-white line-clamp-1">{m.title}</div>
+                        <div className="text-[10px] text-purple-300/70">📍 {m.locationName} ({m.district})</div>
+                      </div>
                     </div>
 
                     {/* Date & Time */}
                     <div className="col-span-3">
-                      <div className="font-semibold text-purple-200">{m.dayOfWeek}, {m.date}</div>
+                      <div className="font-semibold text-purple-200">{m.dayOfWeek}, {formatDateDDMMYYYY(m.date)}</div>
                       <div className="text-[10px] text-purple-300/70">{m.startTime} ({m.durationMinutes}m)</div>
                     </div>
 
@@ -486,7 +495,7 @@ export const AdminDashboardView: React.FC = () => {
                 <div className="col-span-4">Player Info</div>
                 <div className="col-span-2">Skill Level & Position</div>
                 <div className="col-span-2">Matches & Wins</div>
-                <div className="col-span-2">Rating ELO</div>
+                <div className="col-span-2">PadelyPoints (PP)</div>
                 <div className="col-span-2 text-right">Admin Action</div>
               </div>
 
@@ -495,7 +504,7 @@ export const AdminDashboardView: React.FC = () => {
                   <div key={player.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors">
                     
                     <div className="col-span-4 flex items-center gap-2.5">
-                      <img src={player.avatar} alt={player.name} className="w-9 h-9 rounded-xl object-cover ring-2 ring-purple-600/30" />
+                      <UserAvatar name={player.name} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-purple-600/30" />
                       <div>
                         <div className="font-bold text-white flex items-center gap-1">
                           <span>{player.name}</span>
@@ -518,7 +527,7 @@ export const AdminDashboardView: React.FC = () => {
                     </div>
 
                     <div className="col-span-2 font-black text-amber-300 text-sm">
-                      {player.stats.skillRating} ELO
+                      {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
                     </div>
 
                     <div className="col-span-2 text-right">

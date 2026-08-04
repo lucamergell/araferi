@@ -123,7 +123,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             location: 'Vake, Tbilisi',
             skillLevel: 'Intermediate',
             preferredPosition: 'Flexible',
-            playingStyle: 'Tactical All-Rounder',
             bio: 'Active padel enthusiast in Tbilisi!',
             stats: {
               totalMatches: 0,
@@ -234,7 +233,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       location: 'Tbilisi',
       skillLevel: 'Intermediate',
       preferredPosition: 'Flexible',
-      playingStyle: 'All-Rounder',
       bio: '',
       stats: {
         totalMatches: 0,
@@ -296,7 +294,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             location: 'Vake, Tbilisi',
             skillLevel: 'Intermediate',
             preferredPosition: 'Flexible',
-            playingStyle: 'Tactical All-Rounder',
             bio: 'New padel player in Tbilisi!',
             stats: {
               totalMatches: 0,
