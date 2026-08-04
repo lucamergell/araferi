@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Match, PaymentRecord, PlayerStats } from '../types';
 import { INITIAL_USERS, INITIAL_MATCHES, INITIAL_PAYMENTS } from '../data/initialData';
 import { auth, db, googleProvider } from '../lib/firebase';
-import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseError';
 
@@ -128,6 +128,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     usersRef.current = users;
   }, [users]);
+
+  // Handle mobile auth redirect result
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          showNotification(`Signed in with Google as ${result.user.displayName}!`, 'success');
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect sign-in error:', error);
+        if (error?.code !== 'auth/redirect-cancelled-by-user' && error?.code !== 'auth/cancelled-popup-request') {
+          showNotification('Google Sign-In failed or was cancelled.', 'error');
+        }
+      });
+  }, []);
 
   // Sync with Firebase Auth
   useEffect(() => {
@@ -373,15 +389,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           showNotification(`Welcome, ${newUser.name}! Account created.`, 'success');
         }
       } else {
-        // Real Google Authentication popup via Firebase
-        const res = await signInWithPopup(auth, googleProvider);
-        if (res.user) {
-          showNotification(`Signed in with Google as ${res.user.displayName}!`, 'success');
+        // Detect mobile browser or iframe environment where popups fail or are extremely slow/blocked
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isInIframe = window.self !== window.top;
+
+        if (isMobile || isInIframe) {
+          showNotification('Redirecting to Google Sign-In...', 'info');
+          // Use redirect on mobile or inside iframes
+          await signInWithRedirect(auth, googleProvider);
+        } else {
+          // Use popup on desktop
+          try {
+            const res = await signInWithPopup(auth, googleProvider);
+            if (res.user) {
+              showNotification(`Signed in with Google as ${res.user.displayName}!`, 'success');
+            }
+          } catch (popupError: any) {
+            console.warn('Popup login failed, trying redirect fallback:', popupError);
+            if (popupError?.code === 'auth/popup-blocked') {
+              showNotification('Popup blocked! Redirecting to Google Sign-In...', 'info');
+              await signInWithRedirect(auth, googleProvider);
+            } else {
+              throw popupError;
+            }
+          }
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Google Sign-in error:', e);
-      showNotification('Google Sign-In was cancelled or encountered an error.', 'error');
+      if (e?.code === 'auth/popup-blocked') {
+        showNotification('Popup was blocked. Redirecting to Google Sign-In...', 'info');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (err) {
+          console.error('Fallback redirect error:', err);
+          showNotification('Google Sign-In failed or was cancelled.', 'error');
+        }
+      } else {
+        showNotification('Google Sign-In was cancelled or encountered an error.', 'error');
+      }
     }
     setIsAuthModalOpen(false);
   };
