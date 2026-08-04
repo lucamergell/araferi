@@ -138,7 +138,7 @@ export const PaymentModal: React.FC = () => {
             {/* Recipient Info */}
             <div className="flex justify-between items-center text-xs">
               <span className="text-purple-300/70 font-medium">{t.paymentModal.recipientName}:</span>
-              <span className="font-bold text-white">Padely Georgia</span>
+              <span className="font-bold text-white">Luca M</span>
             </div>
 
             {/* IBAN Box with Full-Scale Attached Copy Button */}
