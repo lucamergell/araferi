@@ -1,0 +1,6 @@
+{
+  "name": "Padely",
+  "description": "Padel sports connecting platform for players in Tbilisi. Book matches, track stats, rank on leaderboards, and connect with local padel players.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
