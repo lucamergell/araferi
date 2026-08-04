@@ -46,6 +46,7 @@ export const ProfileView: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
               <UserAvatar
                 name={profileUser.name}
+                userId={profileUser.id}
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl ring-4 ring-[#07040d] shadow-2xl border-2 border-purple-400/60 text-4xl sm:text-5xl font-black"
               />
 

@@ -379,7 +379,7 @@ export const AdminDashboardView: React.FC = () => {
                     >
                       <div className="flex items-center gap-2.5">
                         <span className="font-bold text-amber-400 w-4">#{idx + 1}</span>
-                        <UserAvatar name={player.name} className="w-8 h-8 rounded-lg text-xs font-bold" />
+                        <UserAvatar name={player.name} userId={player.id} className="w-8 h-8 rounded-lg text-xs font-bold" />
                         <div>
                           <div className="font-bold text-white">{player.name}</div>
                           <div className="text-[10px] text-purple-300/70">{player.location}</div>
@@ -557,7 +557,7 @@ export const AdminDashboardView: React.FC = () => {
                   <div key={player.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors">
                     
                     <div className="col-span-4 flex items-center gap-2.5">
-                      <UserAvatar name={player.name} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-purple-600/30" />
+                      <UserAvatar name={player.name} userId={player.id} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-purple-600/30" />
                       <div>
                         <div className="font-bold text-white flex items-center gap-1">
                           <span>{player.name}</span>

@@ -3,7 +3,7 @@ import { User, Match, PaymentRecord, PlayerStats } from '../types';
 import { INITIAL_USERS, INITIAL_MATCHES, INITIAL_PAYMENTS } from '../data/initialData';
 import { auth, db, googleProvider } from '../lib/firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, doc, setDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseError';
 
 export type AppView = 'landing' | 'discovery' | 'profile' | 'rankings' | 'admin' | 'dashboard';
@@ -169,7 +169,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
 
           try {
-            await setDoc(doc(db, 'users', newUser.id), newUser);
+            await setDoc(doc(db, 'users', newUser.id), newUser, { merge: true });
           } catch (e) {
             handleFirestoreError(e, OperationType.WRITE, `users/${newUser.id}`);
           }
@@ -815,9 +815,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (updatedProfile.isProfileComplete) {
       localStorage.setItem(`padely_onboarding_completed_${userId}`, 'true');
     }
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedProfile } : u));
     try {
-      await updateDoc(doc(db, 'users', userId), updatedProfile);
-      showNotification('Success', 'success');
+      await setDoc(doc(db, 'users', userId), updatedProfile, { merge: true });
+      showNotification('Profile updated successfully!', 'success');
     } catch (e) {
       handleFirestoreError(e, OperationType.UPDATE, `users/${userId}`);
     }

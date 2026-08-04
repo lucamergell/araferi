@@ -2,6 +2,7 @@ import React from 'react';
 
 interface UserAvatarProps {
   name?: string;
+  userId?: string;
   className?: string;
   textClassName?: string;
 }
@@ -19,11 +20,19 @@ const GRADIENT_PALETTES = [
   'bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-700 text-white',
   'bg-gradient-to-br from-indigo-500 via-sky-600 to-blue-700 text-white',
   'bg-gradient-to-br from-pink-500 via-purple-600 to-violet-700 text-white',
+  'bg-gradient-to-br from-lime-500 via-emerald-600 to-teal-700 text-white',
+  'bg-gradient-to-br from-purple-700 via-pink-600 to-orange-500 text-white',
+  'bg-gradient-to-br from-red-600 via-pink-600 to-purple-700 text-white',
+  'bg-gradient-to-br from-sky-400 via-indigo-600 to-purple-700 text-white',
+  'bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 text-white',
+  'bg-gradient-to-br from-teal-400 via-blue-600 to-indigo-800 text-white',
+  'bg-gradient-to-br from-violet-500 via-purple-600 to-amber-500 text-white',
+  'bg-gradient-to-br from-emerald-600 via-teal-700 to-indigo-900 text-white',
 ];
 
-export const getAvatarGradient = (name: string = '') => {
+export const getAvatarGradient = (seed: string = '', userId: string = '') => {
+  const str = (userId || seed || 'Padel Player').trim();
   let hash = 0;
-  const str = name.trim();
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
@@ -39,11 +48,12 @@ export const getAvatarInitial = (name: string = '') => {
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   name = '',
+  userId = '',
   className = 'w-8 h-8 rounded-lg',
   textClassName = '',
 }) => {
   const initial = getAvatarInitial(name);
-  const gradientClass = getAvatarGradient(name);
+  const gradientClass = getAvatarGradient(name, userId);
 
   return (
     <div
@@ -53,3 +63,4 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     </div>
   );
 };
+

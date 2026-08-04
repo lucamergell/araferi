@@ -152,7 +152,7 @@ export const MatchDetailModal: React.FC = () => {
                   className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/30 cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <UserAvatar name={player.name} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-500/40" />
+                    <UserAvatar name={player.name} userId={player.id} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-500/40" />
                     <div>
                       <div className="text-xs font-bold text-white flex items-center gap-1">
                         <span>{formatDisplayName(player.name)}</span>

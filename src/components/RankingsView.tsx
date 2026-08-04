@@ -152,6 +152,7 @@ export const RankingsView: React.FC = () => {
                 </div>
                 <UserAvatar
                   name={top2.name}
+                  userId={top2.id}
                   className="w-20 h-20 rounded-2xl mx-auto ring-4 ring-slate-400/50 shadow-xl text-2xl font-black"
                 />
                 <div>
@@ -176,6 +177,7 @@ export const RankingsView: React.FC = () => {
                 </div>
                 <UserAvatar
                   name={top1.name}
+                  userId={top1.id}
                   className="w-24 h-24 rounded-2xl mx-auto ring-4 ring-amber-400/70 shadow-2xl text-3xl font-black"
                 />
                 <div>
@@ -200,6 +202,7 @@ export const RankingsView: React.FC = () => {
                 </div>
                 <UserAvatar
                   name={top3.name}
+                  userId={top3.id}
                   className="w-20 h-20 rounded-2xl mx-auto ring-4 ring-amber-700/50 shadow-xl text-2xl font-black"
                 />
                 <div>
@@ -243,6 +246,7 @@ export const RankingsView: React.FC = () => {
 
                     <UserAvatar
                       name={user.name}
+                      userId={user.id}
                       className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-600/30"
                     />
 

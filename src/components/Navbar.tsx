@@ -110,7 +110,7 @@ export const Navbar: React.FC = () => {
                 title={`${t.nav.profile} (${formatDisplayName(currentUser.name)})`}
                 className="w-9 h-9 rounded-xl border border-white/20 transition-all flex items-center justify-center shrink-0 cursor-pointer overflow-hidden shadow-md hover:scale-105"
               >
-                <UserAvatar name={currentUser.name} className="w-full h-full rounded-xl text-xs font-bold" />
+                <UserAvatar name={currentUser.name} userId={currentUser.id} className="w-full h-full rounded-xl text-xs font-bold" />
               </button>
 
               <button

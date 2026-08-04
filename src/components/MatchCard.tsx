@@ -104,6 +104,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
                   <div key={player.id} title={`${formatDisplayName(player.name)} (${player.skillLevel})`}>
                     <UserAvatar
                       name={player.name}
+                      userId={player.id}
                       className="inline-flex h-8 w-8 rounded-full ring-2 ring-purple-500/40 text-xs font-bold"
                     />
                   </div>

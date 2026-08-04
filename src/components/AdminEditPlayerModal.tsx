@@ -53,7 +53,7 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
         
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
           <div className="flex items-center gap-2.5">
-            <UserAvatar name={user.name} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-amber-500/50" />
+            <UserAvatar name={user.name} userId={user.id} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-amber-500/50" />
             <div>
               <h3 className="text-base font-black text-white">Admin Stat Adjustment</h3>
               <p className="text-xs text-amber-300/80">{user.name} ({user.email})</p>
