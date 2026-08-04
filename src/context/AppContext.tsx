@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Match, PaymentRecord, PlayerStats } from '../types';
+import { User, Match, PaymentRecord, PlayerStats, SkillLevel, PlayingPosition } from '../types';
 import { INITIAL_USERS, INITIAL_MATCHES, INITIAL_PAYMENTS } from '../data/initialData';
 import { auth, db, googleProvider } from '../lib/firebase';
-import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseError';
 
@@ -48,6 +48,12 @@ interface AppContextType {
   // Admin & User Actions
   updatePlayerStats: (userId: string, newStats: Partial<PlayerStats>) => void;
   updatePlayerProfile: (userId: string, updatedProfile: Partial<User>) => void;
+  
+  // Placeholder Management Actions
+  addPlaceholderPlayer: (matchId: string) => Promise<void>;
+  fillMatchWithPlaceholders: (matchId: string) => Promise<void>;
+  removePlayerFromMatch: (matchId: string, userId: string) => Promise<void>;
+  clearPlaceholdersFromMatch: (matchId: string) => Promise<void>;
   
   showNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
   resetToDefaultData: () => void;
@@ -128,6 +134,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     usersRef.current = users;
   }, [users]);
+
+  // Handle mobile auth redirect result
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          showNotification(`Signed in with Google as ${result.user.displayName}!`, 'success');
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect sign-in error:', error);
+        if (error?.code !== 'auth/redirect-cancelled-by-user' && error?.code !== 'auth/cancelled-popup-request') {
+          showNotification('Google Sign-In failed or was cancelled.', 'error');
+        }
+      });
+  }, []);
 
   // Sync with Firebase Auth
   useEffect(() => {
@@ -373,15 +395,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           showNotification(`Welcome, ${newUser.name}! Account created.`, 'success');
         }
       } else {
-        // Real Google Authentication popup via Firebase
-        const res = await signInWithPopup(auth, googleProvider);
-        if (res.user) {
-          showNotification(`Signed in with Google as ${res.user.displayName}!`, 'success');
+        try {
+          const res = await signInWithPopup(auth, googleProvider);
+          if (res?.user) {
+            showNotification(`Signed in with Google as ${res.user.displayName}!`, 'success');
+          }
+        } catch (popupError: any) {
+          console.error('Google Sign-in error:', popupError);
+          if (popupError?.code !== 'auth/popup-closed-by-user' && popupError?.code !== 'auth/cancelled-popup-request') {
+            showNotification('Google Sign-In failed or was cancelled.', 'error');
+          }
         }
       }
-    } catch (e) {
-      console.error('Google Sign-in error:', e);
-      showNotification('Google Sign-In was cancelled or encountered an error.', 'error');
+    } catch (e: any) {
+      console.error('Auth error:', e);
     }
     setIsAuthModalOpen(false);
   };
@@ -563,6 +590,208 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Match "${matchToCancel.title}" cancelled. ${refundedCount > 0 ? `${refundedCount} players automatically refunded in full!` : ''}`,
       'info'
     );
+  };
+
+  // Placeholder User Generation & Management
+  const PH_FIRST_NAMES = [
+    'Giga', 'Nino', 'Alexandre', 'Sopho', 'Dachi', 'Elena', 'Luka', 'Sofi', 'Nikoloz', 'Tamar', 
+    'Giorgi', 'Mariam', 'Irakli', 'Ana', 'Revaz', 'Salome', 'Tornike', 'Keti', 'Erekle', 'Nutsa', 
+    'Beka', 'Lela', 'Vakhtang', 'Tina', 'David', 'Mia', 'Levan', 'Nita', 'Sandro', 'Lia',
+    'Guram', 'Nia', 'Andria', 'Maka', 'Otar', 'Khatia', 'Shota', 'Eka', 'Archil', 'Natia',
+    'Mate', 'Tatia', 'Zuka', 'Salomea', 'Demetre', 'Anano', 'Guga', 'Barbare', 'Lasha', 'Tekla'
+  ];
+
+  const PH_LAST_NAMES = [
+    'Kapanadze', 'Beridze', 'Gelashvili', 'Shengelia', 'Maisuradze', 'Batiashvili', 'Giorgadze', 
+    'Khurtsidze', 'Tkemaladze', 'Gogoladze', 'Japaridze', 'Kobakhidze', 'Chkhaidze', 'Tsiklauri', 
+    'Lomidze', 'Abashidze', 'Natsvlishvili', 'Dolidze', 'Kvaratskhelia', 'Gaprindashvili', 
+    'Mshvildadze', 'Kiknadze', 'Melikidze', 'Chikovani', 'Berdzenishvili', 'Kavtaradze', 'Mikadze'
+  ];
+
+  const PH_BIOS = [
+    'Padel enthusiast from Tbilisi. Always up for high-tempo games!',
+    'Playing padel regularly. Love tactical baseline rallies and fast smashes.',
+    'Right court player searching for competitive and friendly matches.',
+    'Padel lover! Ready for a match anytime courts are open.',
+    'Left court specialist. Passionate about improving my padel game.',
+    'Active player looking for good rallies and competitive fun.'
+  ];
+
+  const PH_SKILL_LEVELS: SkillLevel[] = ['Intermediate', 'Advanced', 'Pro', 'Beginner', 'Expert'];
+  const PH_POSITIONS: PlayingPosition[] = ['Left / Drive', 'Right / Backhand', 'Flexible'];
+
+  const createOrGetPlaceholderUser = async (excludeIds: string[]): Promise<User> => {
+    // Generate a unique name that is not used by any user currently in state or in excludeIds
+    const takenNames = new Set(users.map(u => u.name.toLowerCase()));
+    
+    let uniqueName = '';
+    let level: SkillLevel = 'Intermediate';
+    let pos: PlayingPosition = 'Flexible';
+
+    for (let attempt = 0; attempt < 300; attempt++) {
+      const fName = PH_FIRST_NAMES[Math.floor(Math.random() * PH_FIRST_NAMES.length)];
+      const lName = PH_LAST_NAMES[Math.floor(Math.random() * PH_LAST_NAMES.length)];
+      const candidate = `${fName} ${lName}`;
+      if (!takenNames.has(candidate.toLowerCase())) {
+        uniqueName = candidate;
+        level = PH_SKILL_LEVELS[Math.floor(Math.random() * PH_SKILL_LEVELS.length)];
+        pos = PH_POSITIONS[Math.floor(Math.random() * PH_POSITIONS.length)];
+        break;
+      }
+    }
+
+    if (!uniqueName) {
+      uniqueName = `Player ${Math.floor(Math.random() * 9000) + 1000}`;
+    }
+
+    const slug = uniqueName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const phId = `ph_${slug}_${Math.random().toString(36).substring(2, 7)}`;
+    const rating = 950 + Math.floor(Math.random() * 300);
+    const randomBio = PH_BIOS[Math.floor(Math.random() * PH_BIOS.length)];
+
+    const newUser: User = {
+      id: phId,
+      name: uniqueName,
+      email: `${slug}@placeholder.padely.ge`,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${slug}`,
+      age: 21 + Math.floor(Math.random() * 15),
+      location: 'Tbilisi',
+      skillLevel: level,
+      preferredPosition: pos,
+      playingStyle: 'Balanced',
+      bio: randomBio,
+      role: 'user',
+      isPlaceholder: true,
+      isProfileComplete: true,
+      createdAt: new Date().toISOString(),
+      stats: {
+        totalMatches: Math.floor(Math.random() * 15) + 3,
+        wins: Math.floor(Math.random() * 8) + 1,
+        losses: Math.floor(Math.random() * 7) + 1,
+        winPercentage: 50,
+        currentStreak: 1,
+        longestStreak: 3,
+        hoursPlayed: Math.floor(Math.random() * 20) + 5,
+        matchesThisMonth: Math.floor(Math.random() * 5) + 1,
+        favoritePartner: 'None yet',
+        rankingPosition: 999,
+        skillRating: rating,
+        padelyPoints: rating,
+        highestPadelyPoints: rating + 100,
+        monthlyPadelyPoints: 40,
+      },
+      matchHistory: [],
+    };
+
+    try {
+      await setDoc(doc(db, 'users', phId), newUser, { merge: true });
+    } catch (e) {
+      console.error('Failed to create placeholder user in Firestore:', e);
+    }
+    return newUser;
+  };
+
+  const addPlaceholderPlayer = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can manage placeholder players.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+    if (targetMatch.joinedUserIds.length >= targetMatch.totalSpots) {
+      showNotification('Match is already full!', 'info');
+      return;
+    }
+
+    const placeholderUser = await createOrGetPlaceholderUser(targetMatch.joinedUserIds);
+    const updatedJoined = [...targetMatch.joinedUserIds, placeholderUser.id];
+    const newStatus = updatedJoined.length >= targetMatch.totalSpots ? 'Fully Booked' : 'Open';
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), {
+        joinedUserIds: updatedJoined,
+        status: newStatus,
+      });
+      showNotification(`Added ${placeholderUser.name} to the game!`, 'success');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
+  };
+
+  const fillMatchWithPlaceholders = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can manage placeholder players.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    let currentJoined = [...targetMatch.joinedUserIds];
+    const needed = targetMatch.totalSpots - currentJoined.length;
+    if (needed <= 0) {
+      showNotification('Match is already full!', 'info');
+      return;
+    }
+
+    const addedNames: string[] = [];
+    for (let i = 0; i < needed; i++) {
+      const phUser = await createOrGetPlaceholderUser(currentJoined);
+      currentJoined.push(phUser.id);
+      addedNames.push(phUser.name);
+    }
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), {
+        joinedUserIds: currentJoined,
+        status: 'Fully Booked',
+      });
+      showNotification(`Filled game with ${addedNames.length} placeholder user(s)!`, 'success');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
+  };
+
+  const removePlayerFromMatch = async (matchId: string, userId: string) => {
+    if (currentUser?.role !== 'admin' && currentUser?.id !== userId) {
+      showNotification('Only admins can remove players from matches.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    const removedUser = users.find(u => u.id === userId);
+    const updatedJoined = targetMatch.joinedUserIds.filter(id => id !== userId);
+    const newStatus = updatedJoined.length >= targetMatch.totalSpots ? 'Fully Booked' : 'Open';
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), {
+        joinedUserIds: updatedJoined,
+        status: newStatus,
+      });
+      showNotification(`Removed ${removedUser ? removedUser.name : 'player'} from the match.`, 'info');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
+  };
+
+  const clearPlaceholdersFromMatch = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can manage placeholder players.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    const nonPlaceholderIds = targetMatch.joinedUserIds.filter(id => !id.startsWith('ph_') && !id.startsWith('placeholder_'));
+    try {
+      await updateDoc(doc(db, 'matches', matchId), {
+        joinedUserIds: nonPlaceholderIds,
+        status: 'Open',
+      });
+      showNotification('Cleared all placeholder users from match!', 'info');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
   };
 
   const updatePlayerStats = async (userId: string, newStats: Partial<PlayerStats>) => {
@@ -906,6 +1135,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         updatePlayerStats,
         updatePlayerProfile,
+        
+        addPlaceholderPlayer,
+        fillMatchWithPlaceholders,
+        removePlayerFromMatch,
+        clearPlaceholdersFromMatch,
+        
         showNotification,
         resetToDefaultData,
       }}

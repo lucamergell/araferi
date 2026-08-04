@@ -36,8 +36,11 @@ export const RankingsView: React.FC = () => {
     );
   }
 
-  // Filter users
+  // Filter users (exclude placeholder players from leaderboard)
   const filteredUsers = users.filter(user => {
+    if (user.isPlaceholder || user.id.startsWith('ph_') || user.id.startsWith('placeholder_') || user.email?.endsWith('@placeholder.padely.ge')) {
+      return false;
+    }
     if (skillFilter !== 'All' && user.skillLevel !== skillFilter) {
       return false;
     }
