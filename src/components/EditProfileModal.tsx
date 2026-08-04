@@ -15,7 +15,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
 
   const [name, setName] = useState(user.name);
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
-  const [age, setAge] = useState(user.age);
+  const [age, setAge] = useState<number | string>(user.age ?? '');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(user.skillLevel);
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(user.preferredPosition);
   const [bio, setBio] = useState(user.bio || '');
@@ -23,10 +23,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const parsedAge = Number(age);
+    const validAge = !isNaN(parsedAge) && parsedAge > 0 ? parsedAge : (user.age || 26);
+
     updatePlayerProfile(user.id, {
       name,
       phoneNumber,
-      age: Number(age),
+      age: validAge,
       skillLevel,
       preferredPosition,
       bio,
@@ -79,8 +82,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
               <input
                 type="number"
                 required
+                min={12}
+                max={99}
                 value={age}
-                onChange={e => setAge(Number(e.target.value))}
+                onChange={e => setAge(e.target.value)}
                 className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
               />
             </div>

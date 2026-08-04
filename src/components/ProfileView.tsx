@@ -66,7 +66,7 @@ export const ProfileView: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-purple-200/90 font-medium flex items-center gap-3 flex-wrap">
-                  {profileUser.age ? (
+                  {typeof profileUser.age === 'number' && profileUser.age > 0 ? (
                     <>
                       <span>{profileUser.age} y/o</span>
                       <span>•</span>
