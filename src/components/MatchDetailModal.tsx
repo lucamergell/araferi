@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info, UserPlus, Trash2, Bot } from 'lucide-react';
 import { formatDisplayName, getLocalizedMatch } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
 
@@ -14,7 +14,11 @@ export const MatchDetailModal: React.FC = () => {
     currentUser, 
     startJoinMatchFlow, 
     openUserProfile,
-    showNotification
+    showNotification,
+    addPlaceholderPlayer,
+    fillMatchWithPlaceholders,
+    removePlayerFromMatch,
+    clearPlaceholdersFromMatch
   } = useApp();
 
   const { language, t } = useLanguage();
@@ -130,58 +134,131 @@ export const MatchDetailModal: React.FC = () => {
 
           {/* Participants Spot Breakdown */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h4 className="text-xs font-bold text-purple-200 uppercase tracking-wider flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-purple-400" />
                 <span>{t.matchDetails.participants} ({match.joinedUserIds.length}/{match.totalSpots})</span>
               </h4>
 
-              <span className="text-xs text-purple-300/80 font-semibold">
-                {emptySpotsCount > 0 ? `${emptySpotsCount} ${t.matchDetails.spotsAvailable}` : t.matchCard.fullyBooked}
-              </span>
+              <div className="flex items-center gap-2">
+                {emptySpotsCount > 0 && (
+                  <>
+                    <button
+                      onClick={() => addPlaceholderPlayer(match.id)}
+                      className="px-2.5 py-1 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-[11px] font-bold border border-purple-600/40 flex items-center gap-1 transition-all cursor-pointer"
+                      title="Add single placeholder user"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 text-purple-400" />
+                      <span>+ Placeholder</span>
+                    </button>
+                    <button
+                      onClick={() => fillMatchWithPlaceholders(match.id)}
+                      className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold shadow-md flex items-center gap-1 transition-all cursor-pointer"
+                      title="Fill all empty spots with placeholder players"
+                    >
+                      <Bot className="w-3.5 h-3.5 text-purple-300" />
+                      <span>Fill Game</span>
+                    </button>
+                  </>
+                )}
+
+                {match.joinedUserIds.some(id => id.startsWith('ph_') || id.startsWith('placeholder_')) && (
+                  <button
+                    onClick={() => clearPlaceholdersFromMatch(match.id)}
+                    className="px-2.5 py-1 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 text-[11px] font-bold border border-red-800/40 flex items-center gap-1 transition-all cursor-pointer"
+                    title="Clear all placeholder players from this match"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    <span>Clear Placeholders</span>
+                  </button>
+                )}
+
+                <span className="text-xs text-purple-300/80 font-semibold ml-1">
+                  {emptySpotsCount > 0 ? `${emptySpotsCount} ${t.matchDetails.spotsAvailable}` : t.matchCard.fullyBooked}
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {joinedPlayers.map((player) => (
-                <div
-                  key={player.id}
-                  onClick={() => {
-                    closeModal();
-                    openUserProfile(player.id);
-                  }}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/30 cursor-pointer transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <UserAvatar name={player.name} userId={player.id} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-500/40" />
-                    <div>
-                      <div className="text-xs font-bold text-white flex items-center gap-1">
-                        <span>{formatDisplayName(player.name)}</span>
-                        {player.id === currentUser?.id && (
-                          <span className="text-[10px] text-purple-300 font-normal">({t.common.you})</span>
-                        )}
-                      </div>
-                      <div className="text-[10px] text-purple-300/70">
-                        {player.skillLevel} • {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
+              {joinedPlayers.map((player) => {
+                const isPlaceholder = player.id.startsWith('ph_') || player.id.startsWith('placeholder_');
+                return (
+                  <div
+                    key={player.id}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/30 transition-all group"
+                  >
+                    <div 
+                      onClick={() => {
+                        closeModal();
+                        openUserProfile(player.id);
+                      }}
+                      className="flex items-center gap-3 cursor-pointer flex-1 min-w-0 pr-2"
+                    >
+                      <UserAvatar name={player.name} userId={player.id} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-purple-500/40 shrink-0" />
+                      <div className="truncate">
+                        <div className="text-xs font-bold text-white flex items-center gap-1 truncate">
+                          <span className="truncate">{formatDisplayName(player.name)}</span>
+                          {player.id === currentUser?.id && (
+                            <span className="text-[10px] text-purple-300 font-normal shrink-0">({t.common.you})</span>
+                          )}
+                          {isPlaceholder && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-900/80 text-purple-300 border border-purple-700/50 shrink-0 font-medium">Placeholder</span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-purple-300/70 truncate">
+                          {player.skillLevel} • {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
+                        </div>
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      {(isPlaceholder || currentUser?.role === 'admin') && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removePlayerFromMatch(match.id, player.id);
+                          }}
+                          title="Remove player from game"
+                          className="p-1.5 rounded-lg bg-red-950/50 hover:bg-red-900/80 text-red-400 hover:text-white border border-red-800/30 transition-all cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          closeModal();
+                          openUserProfile(player.id);
+                        }}
+                        className="p-1 text-purple-400 hover:text-white cursor-pointer"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-purple-400" />
-                </div>
-              ))}
+                );
+              })}
 
               {/* Empty spots placeholders */}
               {Array.from({ length: emptySpotsCount }).map((_, i) => (
                 <div
                   key={`spot_${i}`}
-                  className="flex items-center gap-3 p-3 rounded-2xl bg-purple-950/20 border-2 border-dashed border-purple-800/30 text-purple-400/60"
+                  onClick={() => addPlaceholderPlayer(match.id)}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-purple-950/20 hover:bg-purple-900/30 border-2 border-dashed border-purple-800/30 hover:border-purple-600/50 text-purple-400/60 transition-all cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-purple-900/20 flex items-center justify-center font-black text-xs">
-                    +{i + 1}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-900/20 group-hover:bg-purple-800/40 flex items-center justify-center font-black text-xs text-purple-300 transition-all">
+                      +{i + 1}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-purple-300/80 group-hover:text-purple-200">{t.matchDetails.openSpot}</div>
+                      <div className="text-[10px] text-purple-400/60 group-hover:text-purple-300">Click to add placeholder player</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-purple-300/70">{t.matchDetails.openSpot}</div>
-                    <div className="text-[10px] text-purple-400/50">{t.matchDetails.waitingForPlayer}</div>
-                  </div>
+
+                  <span className="text-xs font-bold px-2 py-1 rounded-lg bg-purple-900/40 text-purple-300 border border-purple-700/40 opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                    <UserPlus className="w-3 h-3" />
+                    Add
+                  </span>
                 </div>
               ))}
             </div>
