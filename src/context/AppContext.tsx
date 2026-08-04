@@ -618,50 +618,75 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Placeholder User Generation & Management
-  const PLACEHOLDER_NAMES = [
-    { name: 'Giga Kapanadze', level: 'Intermediate', pos: 'Left / Drive' },
-    { name: 'Nino Beridze', level: 'Advanced', pos: 'Right / Backhand' },
-    { name: 'Alexandre M.', level: 'Intermediate', pos: 'Flexible' },
-    { name: 'Sopho Tsiklauri', level: 'Beginner', pos: 'Right / Backhand' },
-    { name: 'Dachi Gelashvili', level: 'Pro', pos: 'Left / Drive' },
-    { name: 'Elena Shengelia', level: 'Intermediate', pos: 'Flexible' },
-    { name: 'Luka Maisuradze', level: 'Advanced', pos: 'Left / Drive' },
-    { name: 'Sofi Batiashvili', level: 'Intermediate', pos: 'Right / Backhand' },
-    { name: 'Nikoloz Giorgadze', level: 'Expert', pos: 'Flexible' },
-    { name: 'Tamar Khurtsidze', level: 'Beginner', pos: 'Right / Backhand' },
-    { name: 'Giorgi Tkemaladze', level: 'Intermediate', pos: 'Left / Drive' },
-    { name: 'Mariam Gogoladze', level: 'Advanced', pos: 'Right / Backhand' },
+  const PH_FIRST_NAMES = [
+    'Giga', 'Nino', 'Alexandre', 'Sopho', 'Dachi', 'Elena', 'Luka', 'Sofi', 'Nikoloz', 'Tamar', 
+    'Giorgi', 'Mariam', 'Irakli', 'Ana', 'Revaz', 'Salome', 'Tornike', 'Keti', 'Erekle', 'Nutsa', 
+    'Beka', 'Lela', 'Vakhtang', 'Tina', 'David', 'Mia', 'Levan', 'Nita', 'Sandro', 'Lia',
+    'Guram', 'Nia', 'Andria', 'Maka', 'Otar', 'Khatia', 'Shota', 'Eka', 'Archil', 'Natia',
+    'Mate', 'Tatia', 'Zuka', 'Salomea', 'Demetre', 'Anano', 'Guga', 'Barbare', 'Lasha', 'Tekla'
   ];
 
+  const PH_LAST_NAMES = [
+    'Kapanadze', 'Beridze', 'Gelashvili', 'Shengelia', 'Maisuradze', 'Batiashvili', 'Giorgadze', 
+    'Khurtsidze', 'Tkemaladze', 'Gogoladze', 'Japaridze', 'Kobakhidze', 'Chkhaidze', 'Tsiklauri', 
+    'Lomidze', 'Abashidze', 'Natsvlishvili', 'Dolidze', 'Kvaratskhelia', 'Gaprindashvili', 
+    'Mshvildadze', 'Kiknadze', 'Melikidze', 'Chikovani', 'Berdzenishvili', 'Kavtaradze', 'Mikadze'
+  ];
+
+  const PH_BIOS = [
+    'Padel enthusiast from Tbilisi. Always up for high-tempo games!',
+    'Playing padel regularly. Love tactical baseline rallies and fast smashes.',
+    'Right court player searching for competitive and friendly matches.',
+    'Padel lover! Ready for a match anytime courts are open.',
+    'Left court specialist. Passionate about improving my padel game.',
+    'Active player looking for good rallies and competitive fun.'
+  ];
+
+  const PH_SKILL_LEVELS: SkillLevel[] = ['Intermediate', 'Advanced', 'Pro', 'Beginner', 'Expert'];
+  const PH_POSITIONS: PlayingPosition[] = ['Left / Drive', 'Right / Backhand', 'Flexible'];
+
   const createOrGetPlaceholderUser = async (excludeIds: string[]): Promise<User> => {
-    // Check if there is an existing placeholder user not in excludeIds
-    const existingUnused = users.find(u => (u.id.startsWith('ph_') || u.id.startsWith('placeholder_')) && !excludeIds.includes(u.id));
-    if (existingUnused) return existingUnused;
-
-    // Pick a template name not taken
+    // Generate a unique name that is not used by any user currently in state or in excludeIds
     const takenNames = new Set(users.map(u => u.name.toLowerCase()));
-    const template = PLACEHOLDER_NAMES.find(p => !takenNames.has(p.name.toLowerCase())) || {
-      name: `Placeholder Player ${Math.floor(Math.random() * 800) + 100}`,
-      level: 'Intermediate',
-      pos: 'Flexible'
-    };
+    
+    let uniqueName = '';
+    let level: SkillLevel = 'Intermediate';
+    let pos: PlayingPosition = 'Flexible';
 
-    const slug = template.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    for (let attempt = 0; attempt < 300; attempt++) {
+      const fName = PH_FIRST_NAMES[Math.floor(Math.random() * PH_FIRST_NAMES.length)];
+      const lName = PH_LAST_NAMES[Math.floor(Math.random() * PH_LAST_NAMES.length)];
+      const candidate = `${fName} ${lName}`;
+      if (!takenNames.has(candidate.toLowerCase())) {
+        uniqueName = candidate;
+        level = PH_SKILL_LEVELS[Math.floor(Math.random() * PH_SKILL_LEVELS.length)];
+        pos = PH_POSITIONS[Math.floor(Math.random() * PH_POSITIONS.length)];
+        break;
+      }
+    }
+
+    if (!uniqueName) {
+      uniqueName = `Player ${Math.floor(Math.random() * 9000) + 1000}`;
+    }
+
+    const slug = uniqueName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const phId = `ph_${slug}_${Math.random().toString(36).substring(2, 7)}`;
     const rating = 950 + Math.floor(Math.random() * 300);
+    const randomBio = PH_BIOS[Math.floor(Math.random() * PH_BIOS.length)];
 
     const newUser: User = {
       id: phId,
-      name: template.name,
+      name: uniqueName,
       email: `${slug}@placeholder.padely.ge`,
       avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${slug}`,
-      age: 22 + Math.floor(Math.random() * 14),
+      age: 21 + Math.floor(Math.random() * 15),
       location: 'Tbilisi',
-      skillLevel: template.level as SkillLevel,
-      preferredPosition: template.pos as PlayingPosition,
+      skillLevel: level,
+      preferredPosition: pos,
       playingStyle: 'Balanced',
-      bio: 'Placeholder player generated for padel match filling.',
+      bio: randomBio,
       role: 'user',
+      isPlaceholder: true,
       isProfileComplete: true,
       createdAt: new Date().toISOString(),
       stats: {
@@ -674,7 +699,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         hoursPlayed: Math.floor(Math.random() * 20) + 5,
         matchesThisMonth: Math.floor(Math.random() * 5) + 1,
         favoritePartner: 'None yet',
-        rankingPosition: 99,
+        rankingPosition: 999,
         skillRating: rating,
         padelyPoints: rating,
         highestPadelyPoints: rating + 100,
