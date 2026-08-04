@@ -26,7 +26,9 @@ export const AdminDashboardView: React.FC = () => {
     firebaseUser,
     loginWithGoogle,
     logout,
-    setCurrentView
+    setCurrentView,
+    isLeaderboardDisabled,
+    toggleLeaderboardDisabled
   } = useApp();
 
   const ADMIN_EMAIL = 'luca.mergell@gmail.com';
@@ -290,6 +292,46 @@ export const AdminDashboardView: React.FC = () => {
                 </div>
               </div>
 
+            </div>
+
+            {/* Platform Controls */}
+            <div className="p-5 rounded-3xl bg-[#120a21] border border-amber-900/40 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Trophy className="w-5 h-5 text-amber-400" />
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Leaderboard Status Control</h3>
+                    <p className="text-[11px] text-purple-300/70">
+                      Temporarily disable or enable the public leaderboard for all players
+                    </p>
+                  </div>
+                </div>
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
+                  isLeaderboardDisabled 
+                    ? 'bg-red-950/80 border-red-600/50 text-red-300' 
+                    : 'bg-emerald-950/80 border-emerald-600/50 text-emerald-300'
+                }`}>
+                  {isLeaderboardDisabled ? 'DISABLED' : 'ACTIVE'}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-purple-950/40 border border-purple-800/30 flex items-center justify-between text-xs gap-3">
+                <span className="text-purple-200">
+                  {isLeaderboardDisabled 
+                    ? 'The leaderboard is currently hidden from players with an admin notice.' 
+                    : 'The leaderboard is active and publicly accessible.'}
+                </span>
+                <button
+                  onClick={toggleLeaderboardDisabled}
+                  className={`px-4 py-2 rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 cursor-pointer shrink-0 ${
+                    isLeaderboardDisabled
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                      : 'bg-red-600 hover:bg-red-500 text-white'
+                  }`}
+                >
+                  {isLeaderboardDisabled ? 'Enable Leaderboard' : 'Disable Leaderboard'}
+                </button>
+              </div>
             </div>
 
             {/* Economics Explanation & Most Active Players */}

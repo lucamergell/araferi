@@ -14,8 +14,9 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
   const { t } = useLanguage();
 
   const [name, setName] = useState(user.name);
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
   const [age, setAge] = useState(user.age);
-  const [location, setLocation] = useState(user.location);
+  const [location, setLocation] = useState(user.location || 'Tbilisi');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(user.skillLevel);
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(user.preferredPosition);
   const [bio, setBio] = useState(user.bio || '');
@@ -25,6 +26,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
 
     updatePlayerProfile(user.id, {
       name,
+      phoneNumber,
       age,
       location,
       skillLevel,
@@ -61,6 +63,20 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
             </div>
 
             <div>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.phoneNumber}</label>
+              <input
+                type="tel"
+                required
+                value={phoneNumber}
+                onChange={e => setPhoneNumber(e.target.value)}
+                placeholder={t.profileModal.phonePlaceholder || '+995 5xx xx xx xx'}
+                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.age}</label>
               <input
                 type="number"
@@ -70,9 +86,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
                 className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.location}</label>
               <input
@@ -80,10 +94,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
                 required
                 value={location}
                 onChange={e => setLocation(e.target.value)}
+                placeholder="Tbilisi"
                 className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.skillLevel}</label>
               <select
@@ -97,19 +114,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
                 <option value="Pro">{t.common.pro}</option>
               </select>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.preferredPosition}</label>
-            <select
-              value={preferredPosition}
-              onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
-              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-            >
-              <option value="Left / Drive">{t.profileModal.leftDrive}</option>
-              <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
-              <option value="Flexible">{t.profileModal.flexible}</option>
-            </select>
+            <div>
+              <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.preferredPosition}</label>
+              <select
+                value={preferredPosition}
+                onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
+                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+              >
+                <option value="Left / Drive">{t.profileModal.leftDrive}</option>
+                <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
+                <option value="Flexible">{t.profileModal.flexible}</option>
+              </select>
+            </div>
           </div>
 
           <div>

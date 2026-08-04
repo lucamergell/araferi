@@ -132,8 +132,10 @@ export const translations = {
       reqBanner: 'პროფილის შევსება აუცილებელია შესაფერისი დონის მოთამაშეებთან დასაკავშირებლად.',
       editTitle: 'პროფილის რედაქტირება',
       fullName: 'სრული სახელი',
+      phoneNumber: 'ტელეფონის ნომერი',
+      phonePlaceholder: '+995 5xx xx xx xx',
       age: 'ასაკი',
-      location: 'ლოკაცია / უბანი',
+      location: 'ქალაქი / უბანი',
       skillLevel: 'დონე',
       preferredPosition: 'სასურველი პოზიცია',
       bio: 'ჩემს შესახებ',
@@ -213,6 +215,8 @@ export const translations = {
       clickToInspect: 'დააჭირეთ პროფილის სანახავად',
       rating: 'Padely Points',
       highestRank: 'უმაღლესი რანგი',
+      disabledTitle: 'ლიდერბორდი დროებით გამორთულია',
+      disabledDesc: 'ადმინისტრატორის მიერ მიმდინარეობს ლიდერბორდის განახლება ან ტექნიკური სამუშაოები. გთხოვთ სცადოთ მოგვიანებით.',
     },
 
     // Profile
@@ -403,8 +407,10 @@ export const translations = {
       reqBanner: 'Profile setup is required once to match you with players of your skill level.',
       editTitle: 'Customize Profile',
       fullName: 'Full Name',
+      phoneNumber: 'Phone Number',
+      phonePlaceholder: '+995 5xx xx xx xx',
       age: 'Age',
-      location: 'Location / District',
+      location: 'City / District',
       skillLevel: 'Skill Level',
       preferredPosition: 'Preferred Position',
       bio: 'Bio / Intro',
@@ -484,6 +490,8 @@ export const translations = {
       clickToInspect: 'Click player to view profile',
       rating: 'Padely Points',
       highestRank: 'Highest Rank',
+      disabledTitle: 'Leaderboard Temporarily Disabled',
+      disabledDesc: 'The leaderboard is temporarily disabled for maintenance or updates by the admin. Please check back soon.',
     },
 
     // Profile

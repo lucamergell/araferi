@@ -21,6 +21,7 @@ interface AppContextType {
   isPaymentModalOpen: boolean;
   activeMatchForPayment: Match | null;
   notification: { message: string; type: 'success' | 'info' | 'error' } | null;
+  isLeaderboardDisabled: boolean;
   
   // Actions
   setCurrentView: (view: AppView) => void;
@@ -31,6 +32,7 @@ interface AppContextType {
   loginWithGoogle: (customData?: { email: string; name: string; avatar: string }) => Promise<void>;
   logout: () => Promise<void>;
   toggleAdminDemoMode: () => void;
+  toggleLeaderboardDisabled: () => Promise<void>;
   
   // Match Actions
   startJoinMatchFlow: (match: Match) => void;
@@ -101,6 +103,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [activeMatchForPayment, setActiveMatchForPayment] = useState<Match | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+  const [isLeaderboardDisabled, setIsLeaderboardDisabled] = useState<boolean>(false);
+
+  // Firestore listener for app settings (leaderboard status)
+  useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, 'settings', 'appSettings'),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          if (typeof data.isLeaderboardDisabled === 'boolean') {
+            setIsLeaderboardDisabled(data.isLeaderboardDisabled);
+          }
+        }
+      },
+      (error) => {
+        console.warn('Settings listener note:', error);
+      }
+    );
+    return () => unsub();
+  }, []);
 
   // Sync with Firebase Auth
   useEffect(() => {
@@ -346,6 +368,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleAdminDemoMode = () => {
     setCurrentView('admin');
+  };
+
+  const toggleLeaderboardDisabled = async () => {
+    const newValue = !isLeaderboardDisabled;
+    setIsLeaderboardDisabled(newValue);
+    try {
+      await setDoc(doc(db, 'settings', 'appSettings'), { isLeaderboardDisabled: newValue }, { merge: true });
+      showNotification(
+        newValue ? 'Leaderboard has been temporarily disabled.' : 'Leaderboard has been enabled.',
+        'info'
+      );
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, 'settings/appSettings');
+    }
   };
 
   const startJoinMatchFlow = (match: Match) => {
@@ -809,6 +845,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isPaymentModalOpen,
         activeMatchForPayment,
         notification,
+        isLeaderboardDisabled,
         
         setCurrentView,
         openMatchDetails,
@@ -818,6 +855,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loginWithGoogle,
         logout,
         toggleAdminDemoMode,
+        toggleLeaderboardDisabled,
         
         startJoinMatchFlow,
         closePaymentModal,

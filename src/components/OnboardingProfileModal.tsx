@@ -14,8 +14,9 @@ export const OnboardingProfileModal: React.FC = () => {
   });
 
   const [name, setName] = useState(currentUser?.name || '');
+  const [phoneNumber, setPhoneNumber] = useState(currentUser?.phoneNumber || '');
   const [age, setAge] = useState<number>(currentUser?.age || 25);
-  const [location, setLocation] = useState(currentUser?.location || 'Vake, Tbilisi');
+  const [location, setLocation] = useState('Tbilisi');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(currentUser?.skillLevel || 'Beginner');
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(currentUser?.preferredPosition || 'Flexible');
   const [bio, setBio] = useState(currentUser?.bio || '');
@@ -26,8 +27,9 @@ export const OnboardingProfileModal: React.FC = () => {
         setHasCompletedLocal(true);
       }
       if (currentUser.name) setName(currentUser.name);
+      if (currentUser.phoneNumber) setPhoneNumber(currentUser.phoneNumber);
       if (currentUser.age) setAge(currentUser.age);
-      if (currentUser.location) setLocation(currentUser.location);
+      if (currentUser.location) setLocation(currentUser.location || 'Tbilisi');
       if (currentUser.skillLevel) setSkillLevel(currentUser.skillLevel);
       if (currentUser.preferredPosition) setPreferredPosition(currentUser.preferredPosition);
       if (currentUser.bio) setBio(currentUser.bio);
@@ -48,8 +50,9 @@ export const OnboardingProfileModal: React.FC = () => {
 
     await updatePlayerProfile(currentUser.id, {
       name,
+      phoneNumber,
       age: Number(age) || 25,
-      location,
+      location: location || 'Tbilisi',
       skillLevel,
       preferredPosition,
       bio,
@@ -100,6 +103,22 @@ export const OnboardingProfileModal: React.FC = () => {
 
             <div>
               <label className="block text-purple-300/90 font-bold mb-1">
+                {t.profileModal.phoneNumber} <span className="text-amber-400">*</span>
+              </label>
+              <input
+                type="tel"
+                required
+                value={phoneNumber}
+                onChange={e => setPhoneNumber(e.target.value)}
+                placeholder={t.profileModal.phonePlaceholder || '+995 5xx xx xx xx'}
+                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-purple-300/90 font-bold mb-1">
                 {t.profileModal.age} <span className="text-amber-400">*</span>
               </label>
               <input
@@ -112,9 +131,7 @@ export const OnboardingProfileModal: React.FC = () => {
                 className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-purple-300/90 font-bold mb-1">
                 {t.profileModal.location} <span className="text-amber-400">*</span>
@@ -124,7 +141,7 @@ export const OnboardingProfileModal: React.FC = () => {
                 required
                 value={location}
                 onChange={e => setLocation(e.target.value)}
-                placeholder="e.g. Vake, Tbilisi"
+                placeholder="Tbilisi"
                 className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
               />
             </div>

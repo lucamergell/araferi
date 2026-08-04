@@ -131,7 +131,7 @@ export const PaymentModal: React.FC = () => {
                 {t.paymentModal.bankDetailsTitle}
               </span>
               <span className="text-[10px] font-bold bg-purple-900/80 px-2 py-0.5 rounded-md text-purple-300">
-                TBC Bank / Bank of Georgia
+                Bank of Georgia
               </span>
             </div>
 

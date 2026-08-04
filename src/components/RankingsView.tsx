@@ -1,17 +1,40 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Trophy, Award, Flame, Search, Filter, ArrowUpRight, Medal } from 'lucide-react';
+import { Trophy, Award, Flame, Search, Filter, ArrowUpRight, Medal, ShieldAlert } from 'lucide-react';
 import { formatDisplayName } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
 
 export const RankingsView: React.FC = () => {
-  const { users, openUserProfile } = useApp();
+  const { users, openUserProfile, isLeaderboardDisabled } = useApp();
   const { t } = useLanguage();
 
   const [skillFilter, setSkillFilter] = useState<string>('All');
   const [timePeriod, setTimePeriod] = useState<'all' | 'month' | 'week'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  if (isLeaderboardDisabled) {
+    return (
+      <div className="min-h-screen text-white py-16 px-4 sm:px-6 lg:px-8 pb-28 flex items-center justify-center">
+        <div className="max-w-md w-full bg-[#120a21] border border-amber-800/40 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-amber-950/80 border border-amber-600/50 flex items-center justify-center mx-auto text-amber-400 shadow-xl">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-white tracking-tight">
+              {t.rankings.disabledTitle}
+            </h2>
+            <p className="text-xs text-purple-300/80 leading-relaxed">
+              {t.rankings.disabledDesc}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-2xl bg-purple-950/40 border border-purple-800/30 text-[11px] text-amber-300/90 font-medium">
+            Padely Admin Mode
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Filter users
   const filteredUsers = users.filter(user => {

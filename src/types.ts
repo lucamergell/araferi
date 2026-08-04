@@ -38,9 +38,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phoneNumber?: string;
   avatar: string;
   age: number;
-  location: string; // e.g. "Vake, Tbilisi"
+  location: string; // e.g. "Tbilisi"
   skillLevel: SkillLevel;
   preferredPosition: PlayingPosition;
   playingStyle?: string;
