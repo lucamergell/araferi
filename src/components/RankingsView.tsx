@@ -44,7 +44,7 @@ export const RankingsView: React.FC = () => {
   const restUsers = sortedUsers.slice(3);
 
   return (
-    <div className="min-h-screen bg-[#07040d] text-white py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-24">
+    <div className="min-h-screen text-white py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-24">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header Title */}

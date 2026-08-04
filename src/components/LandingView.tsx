@@ -12,7 +12,7 @@ export const LandingView: React.FC = () => {
   const openMatches = matches.filter(m => m.status === 'Open' || m.status === 'Fully Booked').slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#07040d] text-white pb-28 sm:pb-24">
+    <div className="min-h-screen text-white pb-28 sm:pb-24">
       
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-8 pb-16 px-4 sm:px-6 lg:px-8 border-b border-white/10">

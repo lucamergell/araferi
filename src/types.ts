@@ -94,7 +94,7 @@ export interface PaymentRecord {
   matchId: string;
   matchTitle: string;
   amountGel: number;
-  paymentMethod: 'Apple Pay' | 'Google Pay' | 'Credit Card';
+  paymentMethod: 'Bank Transfer' | 'Pay on Court' | 'Apple Pay' | 'Google Pay' | 'Credit Card' | string;
   status: 'Completed' | 'Refunded';
   createdAt: string;
 }

@@ -35,7 +35,7 @@ interface AppContextType {
   // Match Actions
   startJoinMatchFlow: (match: Match) => void;
   closePaymentModal: () => void;
-  confirmJoinMatch: (paymentMethod: 'Apple Pay' | 'Google Pay' | 'Credit Card') => boolean;
+  confirmJoinMatch: (paymentMethod: 'Bank Transfer' | 'Pay on Court' | 'Apple Pay' | 'Google Pay' | 'Credit Card' | string) => boolean;
   createMatch: (newMatch: Omit<Match, 'id' | 'createdAt' | 'joinedUserIds' | 'status' | 'createdByAdminId'>) => void;
   updateMatch: (matchId: string, updatedFields: Partial<Match>) => void;
   cancelMatch: (matchId: string) => void;
@@ -387,7 +387,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveMatchForPayment(null);
   };
 
-  const confirmJoinMatch = (paymentMethod: 'Apple Pay' | 'Google Pay' | 'Credit Card'): boolean => {
+  const confirmJoinMatch = (paymentMethod: 'Bank Transfer' | 'Pay on Court' | 'Apple Pay' | 'Google Pay' | 'Credit Card' | string): boolean => {
     if (!currentUser || !activeMatchForPayment) return false;
 
     const matchId = activeMatchForPayment.id;

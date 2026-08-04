@@ -12,6 +12,7 @@ import { MatchDetailModal } from './components/MatchDetailModal';
 import { PaymentModal } from './components/PaymentModal';
 import { AuthModal } from './components/AuthModal';
 import { OnboardingProfileModal } from './components/OnboardingProfileModal';
+import { AbstractBackgroundAnimation } from './components/AbstractBackgroundAnimation';
 import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 
 const MainContent: React.FC = () => {
@@ -21,12 +22,8 @@ const MainContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#06030c] font-sans antialiased text-white selection:bg-purple-600 selection:text-white flex flex-col justify-between relative overflow-x-hidden">
       
-      {/* Background Liquid Glass Ambient Glow Orbs */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-gradient-to-br from-purple-600/30 via-indigo-600/20 to-pink-500/20 blur-[130px] animate-blob-1" />
-        <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-500/25 via-purple-700/20 to-cyan-500/20 blur-[140px] animate-blob-2" />
-        <div className="absolute -bottom-32 left-1/4 w-[30rem] h-[30rem] rounded-full bg-gradient-to-t from-purple-900/30 via-violet-600/15 to-pink-600/15 blur-[150px] animate-blob-1" />
-      </div>
+      {/* Dynamic Animated Abstract Background */}
+      <AbstractBackgroundAnimation />
 
       <div className="relative z-10 flex-1">
         {/* Navigation Bar */}

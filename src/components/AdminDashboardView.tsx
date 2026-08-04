@@ -42,8 +42,8 @@ export const AdminDashboardView: React.FC = () => {
   // 1. Guard: Not Logged In
   if (!loggedInEmail) {
     return (
-      <div className="min-h-screen bg-[#07040d] text-white flex items-center justify-center p-4">
-        <div className="max-w-sm w-full bg-[#120a21] border border-purple-900/40 rounded-3xl p-8 text-center shadow-2xl">
+      <div className="min-h-screen text-white flex items-center justify-center p-4">
+        <div className="max-w-sm w-full bg-[#120a21]/90 backdrop-blur-xl border border-purple-900/40 rounded-3xl p-8 text-center shadow-2xl">
           <button
             onClick={() => loginWithGoogle()}
             className="w-full py-4 px-6 rounded-2xl bg-white text-zinc-950 font-bold text-sm flex items-center justify-center gap-3 hover:bg-purple-100 transition-all shadow-xl active:scale-95 cursor-pointer"
@@ -76,7 +76,7 @@ export const AdminDashboardView: React.FC = () => {
   // 2. Guard: Logged In as Unauthorized Email
   if (!isAuthorizedAdmin) {
     return (
-      <div className="min-h-screen bg-[#07040d] text-white flex items-center justify-center p-4">
+      <div className="min-h-screen text-white flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-[#120a21] border border-red-800/50 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
           <div className="w-16 h-16 rounded-2xl bg-red-950/80 border border-red-600/50 flex items-center justify-center mx-auto text-red-400 shadow-xl">
             <AlertTriangle className="w-8 h-8" />
@@ -146,7 +146,7 @@ export const AdminDashboardView: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#07040d] text-white py-8 px-4 sm:px-6 lg:px-8 pb-24">
+    <div className="min-h-screen text-white py-8 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Admin Header & Switch Tabs */}
