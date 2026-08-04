@@ -83,7 +83,7 @@ export const translations = {
       bookedSuccess: 'თქვენ დარეგისტრირებული ხართ ამ თამაშზე',
       matchFull: 'თამაში შეივსო',
       matchCancelled: 'თამაში გაუქმებულია',
-      joinMatchBtn: 'თამაშზე შეერთება',
+      joinMatchBtn: 'შეუერთდი',
       closeBtn: 'დახურვა',
       shareBtn: 'გაზიარება',
       shareSuccess: 'თამაშის ბმული დაკოპირდა!',
