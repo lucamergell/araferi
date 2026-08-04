@@ -15,8 +15,7 @@ export const OnboardingProfileModal: React.FC = () => {
 
   const [name, setName] = useState(currentUser?.name || '');
   const [phoneNumber, setPhoneNumber] = useState(currentUser?.phoneNumber || '');
-  const [age, setAge] = useState<number>(currentUser?.age || 25);
-  const [location, setLocation] = useState('Tbilisi');
+  const [age, setAge] = useState<number | string>(currentUser?.age || '');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(currentUser?.skillLevel || 'Beginner');
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(currentUser?.preferredPosition || 'Flexible');
   const [bio, setBio] = useState(currentUser?.bio || '');
@@ -29,7 +28,6 @@ export const OnboardingProfileModal: React.FC = () => {
       if (currentUser.name) setName(currentUser.name);
       if (currentUser.phoneNumber) setPhoneNumber(currentUser.phoneNumber);
       if (currentUser.age) setAge(currentUser.age);
-      if (currentUser.location) setLocation(currentUser.location || 'Tbilisi');
       if (currentUser.skillLevel) setSkillLevel(currentUser.skillLevel);
       if (currentUser.preferredPosition) setPreferredPosition(currentUser.preferredPosition);
       if (currentUser.bio) setBio(currentUser.bio);
@@ -43,6 +41,11 @@ export const OnboardingProfileModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const parsedAge = Number(age);
+    if (!age || isNaN(parsedAge) || parsedAge < 12 || parsedAge > 99) {
+      return;
+    }
+
     if (currentUser?.id) {
       localStorage.setItem(`padely_onboarding_completed_${currentUser.id}`, 'true');
       setHasCompletedLocal(true);
@@ -51,8 +54,7 @@ export const OnboardingProfileModal: React.FC = () => {
     await updatePlayerProfile(currentUser.id, {
       name,
       phoneNumber,
-      age: Number(age) || 25,
-      location: location || 'Tbilisi',
+      age: parsedAge,
       skillLevel,
       preferredPosition,
       bio,
@@ -116,7 +118,7 @@ export const OnboardingProfileModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-purple-300/90 font-bold mb-1">
                 {t.profileModal.age} <span className="text-amber-400">*</span>
@@ -127,21 +129,8 @@ export const OnboardingProfileModal: React.FC = () => {
                 min={12}
                 max={99}
                 value={age}
-                onChange={e => setAge(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-purple-300/90 font-bold mb-1">
-                {t.profileModal.location} <span className="text-amber-400">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-                placeholder="Tbilisi"
+                onChange={e => setAge(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder="e.g. 25"
                 className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
               />
             </div>

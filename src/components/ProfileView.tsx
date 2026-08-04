@@ -65,13 +65,12 @@ export const ProfileView: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-purple-200/90 font-medium flex items-center gap-3 flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-purple-400" />
-                    {profileUser.location}
-                  </span>
-                  <span>•</span>
-                  <span>{profileUser.age} y/o</span>
-                  <span>•</span>
+                  {profileUser.age ? (
+                    <>
+                      <span>{profileUser.age} y/o</span>
+                      <span>•</span>
+                    </>
+                  ) : null}
                   <span className="text-emerald-400 font-bold">{t.profile.ratingLabel}: {stats.padelyPoints ?? stats.skillRating ?? 1000} PP</span>
                 </p>
               </div>
