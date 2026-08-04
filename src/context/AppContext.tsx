@@ -61,15 +61,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const getNormalizedPath = () => {
-    if (typeof window === 'undefined') return '/';
-    const clean = window.location.pathname.replace(/\/$/, '') || '/';
-    return clean.toLowerCase();
-  };
-
   const getInitialView = (): AppView => {
-    const path = getNormalizedPath();
-    if (path === '/admin') return 'admin';
+    if (typeof window === 'undefined') return 'landing';
+    const path = window.location.pathname;
+    if (path === '/admin' || path === '/admin/') return 'admin';
     if (path === '/discovery') return 'discovery';
     if (path === '/rankings') return 'rankings';
     if (path === '/profile') return 'profile';
@@ -90,8 +85,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const handlePopState = () => {
-      const path = getNormalizedPath();
-      if (path === '/admin') setCurrentViewInternal('admin');
+      const path = window.location.pathname;
+      if (path === '/admin' || path === '/admin/') setCurrentViewInternal('admin');
       else if (path === '/discovery') setCurrentViewInternal('discovery');
       else if (path === '/rankings') setCurrentViewInternal('rankings');
       else if (path === '/profile') setCurrentViewInternal('profile');
@@ -100,20 +95,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-
-  // Update document title dynamically based on active view for SEO
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const titleMap: Record<AppView, string> = {
-      landing: 'Padely Georgia — იპოვე პადელის მატჩები და შეუერთდი მარტივად',
-      discovery: 'Padely.ge — პადელის მატჩების ძიება',
-      rankings: 'Padely.ge — ლიდერბორდი და მოთამაშეთა რეიტინგი',
-      profile: 'Padely.ge — მოთამაშის პროფილი',
-      dashboard: 'Padely.ge — ჩემი თამაშები',
-      admin: 'Padely.ge — ადმინ პანელი',
-    };
-    document.title = titleMap[currentView] || 'Padely Georgia — Padel in Tbilisi';
-  }, [currentView]);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [selectedProfileUserId, setSelectedProfileUserId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
