@@ -15,10 +15,9 @@ export const OnboardingProfileModal: React.FC = () => {
 
   const [name, setName] = useState(currentUser?.name || '');
   const [phoneNumber, setPhoneNumber] = useState(currentUser?.phoneNumber || '');
-  const [age, setAge] = useState<number | string>(currentUser?.age || '');
+  const [age, setAge] = useState<number | string>('');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(currentUser?.skillLevel || 'Beginner');
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(currentUser?.preferredPosition || 'Flexible');
-  const [bio, setBio] = useState(currentUser?.bio || '');
 
   useEffect(() => {
     if (currentUser) {
@@ -27,10 +26,8 @@ export const OnboardingProfileModal: React.FC = () => {
       }
       if (currentUser.name) setName(currentUser.name);
       if (currentUser.phoneNumber) setPhoneNumber(currentUser.phoneNumber);
-      if (currentUser.age) setAge(currentUser.age);
       if (currentUser.skillLevel) setSkillLevel(currentUser.skillLevel);
       if (currentUser.preferredPosition) setPreferredPosition(currentUser.preferredPosition);
-      if (currentUser.bio) setBio(currentUser.bio);
     }
   }, [currentUser?.id]);
 
@@ -57,7 +54,6 @@ export const OnboardingProfileModal: React.FC = () => {
       age: parsedAge,
       skillLevel,
       preferredPosition,
-      bio,
       isProfileComplete: true,
     });
 
@@ -165,19 +161,6 @@ export const OnboardingProfileModal: React.FC = () => {
               <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
               <option value="Flexible">{t.profileModal.flexible}</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-purple-300/90 font-bold mb-1">
-              {t.profileModal.bio}
-            </label>
-            <textarea
-              rows={2}
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder={t.profileModal.bioPlaceholder}
-              className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
-            />
           </div>
 
           <button

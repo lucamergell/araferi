@@ -15,16 +15,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
 
   const [name, setName] = useState(user.name);
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
-  const [age, setAge] = useState<number | string>(user.age ?? '');
+  const [age, setAge] = useState<number | string>(user.age && user.age > 0 ? user.age : '');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(user.skillLevel);
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(user.preferredPosition);
-  const [bio, setBio] = useState(user.bio || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const parsedAge = Number(age);
-    const validAge = !isNaN(parsedAge) && parsedAge > 0 ? parsedAge : (user.age || 26);
+    const validAge = !isNaN(parsedAge) && parsedAge > 0 ? parsedAge : 0;
 
     updatePlayerProfile(user.id, {
       name,
@@ -32,7 +31,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
       age: validAge,
       skillLevel,
       preferredPosition,
-      bio,
     });
 
     onClose();
@@ -116,17 +114,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
               <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>
               <option value="Flexible">{t.profileModal.flexible}</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-purple-300/80 font-bold mb-1">{t.profileModal.bio}</label>
-            <textarea
-              rows={3}
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder={t.profileModal.bioPlaceholder}
-              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none"
-            />
           </div>
 
           <button

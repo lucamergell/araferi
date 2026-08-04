@@ -118,12 +118,6 @@ export const ProfileView: React.FC = () => {
             </div>
           </div>
 
-          {profileUser.bio && (
-            <div className="px-6 py-3 text-xs text-purple-200/90 bg-white/5 border-t border-white/5 italic">
-              "{profileUser.bio}"
-            </div>
-          )}
-
         </div>
 
         {/* Player Statistics Grid */}
