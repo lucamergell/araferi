@@ -102,12 +102,14 @@ export const translations = {
     paymentModal: {
       modalTitle: 'თამაშის რეგისტრაციის საფასური',
       totalGelFee: 'სულ საფასური',
-      courtAndBalls: 'მოიცავს კორტის იჯარასა, ბურთებს და ჩოგნებს',
+      courtAndBalls: 'ასევე მოიცავს ბურთებს და ჩოგნებს',
       fullRefund: '100% დაბრუნების გარანტია',
       refundSub: 'თანხა გიბრუნდებათ თუ 4 მოთამაშე არ შეგროვდა.',
       selectMethod: 'აირჩიეთ გადახდის მეთოდი',
-      bankTransferBtn: '1. საბანკო ანგარიშზე გადარიცხვა',
-      cashOnCourtBtn: '2. ნაღდი ანგარიშსწორება ადგილზე',
+      cashOnCourtBtn: '1. ადგილზე ნაღდი ანგარიშსწორებით',
+      bankTransferBtn: '2. გადმორიცხე საქართველოს ბანკით',
+      bankModalTitle: 'გადმორიცხე საქართველოს ბანკით',
+      clickToViewIban: 'დააჭირეთ IBAN-ის სანახავად და დასაკოპირებლად',
       bankDetailsTitle: 'საბანკო რეკვიზიტები',
       bankName: 'ბანკი',
       recipientName: 'მიმღები',
@@ -119,10 +121,12 @@ export const translations = {
       purposeNotice: 'გთხოვთ გადარიცხვის დანიშნულებაში მიუთითოთ:',
       cashNoticeTitle: 'გადახდა კორტზე',
       cashNoticeDesc: 'თანხას გადაიხდით ადგილზე, თამაშის დაწყებამდე. გთხოვთ მობრძანდეთ 10-15 წუთით ადრე.',
+      confirmRegistration: 'რეგისტრაციის დადასტურება',
       confirmTransferRegistration: 'რეგისტრაციის დადასტურება (გადარიცხულია)',
       confirmCashRegistration: 'რეგისტრაციის დადასტურება (ნაღდი ანგარიშსწორება)',
       processing: 'რეგისტრაცია მუშავდება...',
       payVia: 'გადახდა',
+      finishBtn: 'დასრულება',
     },
 
     // Onboarding & Profile Edit Modals
@@ -273,6 +277,8 @@ export const translations = {
       advanced: 'მაღალი',
       pro: 'პრო',
       you: 'შენ',
+      close: 'დახურვა',
+      finish: 'დასრულება',
     }
   },
 
@@ -377,12 +383,14 @@ export const translations = {
     paymentModal: {
       modalTitle: 'Match Registration Fee',
       totalGelFee: 'Total GEL Fee',
-      courtAndBalls: 'Includes court share & padel balls',
+      courtAndBalls: 'Includes padel balls and rackets',
       fullRefund: 'Full Refund',
       refundSub: '100% refunded if match does not reach 4 players.',
       selectMethod: 'Select Payment Method',
-      bankTransferBtn: '1. Transfer money to Bank Account to Register',
-      cashOnCourtBtn: '2. Pay by Cash on Court',
+      cashOnCourtBtn: '1. Pay by Cash on Court',
+      bankTransferBtn: '2. Transfer with Bank of Georgia',
+      bankModalTitle: 'Transfer with Bank of Georgia',
+      clickToViewIban: 'Click to view and copy IBAN',
       bankDetailsTitle: 'Bank Account Details',
       bankName: 'Bank',
       recipientName: 'Recipient',
@@ -394,10 +402,12 @@ export const translations = {
       purposeNotice: 'Please write the following in the description of the transaction:',
       cashNoticeTitle: 'Pay by Cash on Court',
       cashNoticeDesc: 'You will pay in cash directly at the court before the match begins. Please arrive 10-15 minutes early.',
+      confirmRegistration: 'Confirm Registration',
       confirmTransferRegistration: 'Confirm Registration (Bank Transferred)',
       confirmCashRegistration: 'Confirm Registration (Pay on Court)',
       processing: 'Processing Registration...',
       payVia: 'Pay',
+      finishBtn: 'Finish',
     },
 
     // Onboarding & Profile Edit Modals
@@ -548,6 +558,8 @@ export const translations = {
       advanced: 'Advanced',
       pro: 'Pro',
       you: 'You',
+      close: 'Close',
+      finish: 'Finish',
     }
   }
 };
