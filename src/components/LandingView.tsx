@@ -14,11 +14,10 @@ export const LandingView: React.FC = () => {
   return (
     <div className="min-h-screen text-white pb-28 sm:pb-24">
       
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-8 pb-16 px-4 sm:px-6 lg:px-8 border-b border-white/10">
+      {/* Hero Section Header */}
+      <section className="relative overflow-hidden pt-8 pb-6 px-4 sm:px-6 lg:px-8 border-b border-white/10">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-
+          <div className="max-w-3xl mx-auto text-center">
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-[1.1]">
               {t.landing.titleLine1} <br className="hidden sm:inline" />
@@ -26,54 +25,45 @@ export const LandingView: React.FC = () => {
                 {t.landing.titleLine2}
               </span>
             </h1>
-
-            <p className="text-base sm:text-lg text-purple-200/90 max-w-2xl mx-auto font-medium leading-relaxed">
-              {t.landing.subtitle}
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-              <button
-                onClick={() => setCurrentView('discovery')}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 hover:opacity-90 text-white font-bold text-sm shadow-xl shadow-purple-900/50 border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95"
-              >
-                <Calendar className="w-4 h-4" />
-                <span>{t.landing.browseBtn}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => setCurrentView('rankings')}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-full glass-pill hover:bg-white/15 text-purple-200 hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-              >
-                <Trophy className="w-4 h-4 text-amber-400" />
-                <span>{t.landing.rankingsBtn}</span>
-              </button>
-            </div>
-
-            {/* Transparent Refund Policy Highlight Banner */}
-            <div className="pt-4 max-w-xl mx-auto">
-              <div className="p-4 rounded-3xl glass-card border border-emerald-500/30 flex items-center justify-center gap-3.5 text-left shadow-2xl">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-inner">
-                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-emerald-300 uppercase tracking-wide">
-                    {t.landing.refundTitle}
-                  </div>
-                  <div className="text-xs text-purple-200/90 font-medium">
-                    {t.landing.refundDesc}
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
 
+      {/* Featured Upcoming Matches Section - Directly Under Title */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              <span>{t.discovery.title}</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </h2>
+            <p className="text-xs text-purple-300/70 font-medium">
+              {t.discovery.subtitle}
+            </p>
+          </div>
+
+          <button
+            onClick={() => setCurrentView('discovery')}
+            className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 bg-purple-950/50 hover:bg-purple-900/60 px-3 py-1.5 rounded-xl border border-purple-800/30 transition-all cursor-pointer"
+          >
+            <span>{t.landing.browseBtn}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {openMatches.map((match) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              onSelectMatch={(m) => openMatchDetails(m.id)}
+            />
+          ))}
+        </div>
+      </section>
+
       {/* Feature Pillars Grid */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
           <div className="p-6 rounded-3xl glass-card glass-card-hover space-y-3">
@@ -109,36 +99,20 @@ export const LandingView: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Upcoming Matches Section */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>{t.discovery.title}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            </h2>
-            <p className="text-xs text-purple-300/70 font-medium">
-              {t.discovery.subtitle}
-            </p>
+      {/* Refund Policy Guarantee Box at the Bottom of the Page */}
+      <section className="py-6 px-4 sm:px-6 lg:px-8 max-w-xl mx-auto">
+        <div className="p-4 rounded-3xl glass-card border border-emerald-500/30 flex items-center justify-center gap-3.5 text-left shadow-2xl">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-inner">
+            <ShieldCheck className="w-6 h-6 text-emerald-400" />
           </div>
-
-          <button
-            onClick={() => setCurrentView('discovery')}
-            className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 bg-purple-950/50 hover:bg-purple-900/60 px-3 py-1.5 rounded-xl border border-purple-800/30 transition-all"
-          >
-            <span>{t.landing.browseBtn}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {openMatches.map((match) => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              onSelectMatch={(m) => openMatchDetails(m.id)}
-            />
-          ))}
+          <div>
+            <div className="text-xs font-bold text-emerald-300 uppercase tracking-wide">
+              {t.landing.refundTitle}
+            </div>
+            <div className="text-xs text-purple-200/90 font-medium">
+              {t.landing.refundDesc}
+            </div>
+          </div>
         </div>
       </section>
 

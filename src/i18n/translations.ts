@@ -18,10 +18,10 @@ export const translations = {
     // Hero / Landing
     landing: {
       badge: 'საიტი მუშაობს სატესტო რეჟიმში',
-      titleLine1: 'იპოვე და შეუერთდი პადელის მატჩებს',
-      titleLine2: 'მარტივად',
+      titleLine1: 'შეუერთდი ღია',
+      titleLine2: 'პადელის მატჩებს',
       subtitle: 'უკვე აღარ გჭირდება 4 კაცის შეკრება. იპოვე სასურველი მატჩი, შეუერთდი და მოდი კორტზე!',
-      browseBtn: 'თამაშების ნახვა',
+      browseBtn: 'ყველა მატჩი',
       rankingsBtn: 'ლიდერბორდი',
       refundTitle: '100% დაბრუნების გარანტია',
       refundDesc: 'თუ 4 მოთამაშე არ შეუერთდა მატჩს, თანხა სრულად გიბრუნდებათ.',
@@ -37,7 +37,7 @@ export const translations = {
     discovery: {
       title: 'პადელის მატჩები',
       cityBadge: 'თბილისი',
-      subtitle: 'ღია თამაშები ლისზე, ვაკეში, საბურთალოსა და დიღომში',
+      subtitle: 'შეუერთდი სასურველ მატჩს და ითამაშე პადელი მარტივად!',
       refundBanner: '100% თანხის დაბრუნება არ შევსებულ თამაშზე',
       showing: 'სულ:',
       matchesAvailable: 'თამაში',
