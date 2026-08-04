@@ -91,7 +91,7 @@ export const translations = {
 
     // Auth Modal
     authModal: {
-      title: 'შედით Padely-ზე',
+      title: 'დარეგისტრირდი Padely-ზე',
       subtitle: 'Google ავტორიზაცია',
       googleSignIn: 'Google-ით შესვლა',
       googleDesc: 'შედით Google ანგარიშით თამაშების დასაჯავშნად და პროფილის შესაქმნელად.',
@@ -141,7 +141,7 @@ export const translations = {
       saveProfile: 'პროფილის შენახვა',
       leftDrive: 'მარცხენა (Drive)',
       rightBackhand: 'მარჯვენა (Backhand)',
-      flexible: 'მოქნილი',
+      flexible: 'ორივე',
     },
 
     // Create / Edit Match Modal
