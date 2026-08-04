@@ -124,6 +124,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => unsub();
   }, []);
 
+  const usersRef = React.useRef(users);
+  useEffect(() => {
+    usersRef.current = users;
+  }, [users]);
+
   // Sync with Firebase Auth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
@@ -139,6 +144,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const userDocSnap = await getDoc(userDocRef);
           
           if (userDocSnap.exists()) {
+            const userData = userDocSnap.data() as User;
+            setUsers(prev => {
+              if (prev.some(u => u.id === userUid)) {
+                return prev.map(u => u.id === userUid ? { ...u, ...userData } : u);
+              }
+              return [...prev, userData];
+            });
             setCurrentUserId(userUid);
           } else {
             // Create new user profile in Firestore only if they don't exist yet
@@ -162,7 +174,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 hoursPlayed: 0,
                 matchesThisMonth: 0,
                 favoritePartner: 'None yet',
-                rankingPosition: users.length + 1,
+                rankingPosition: usersRef.current.length + 1,
                 skillRating: 1000,
                 padelyPoints: 1000,
                 highestPadelyPoints: 1000,
@@ -175,12 +187,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
 
             await setDoc(userDocRef, newUser, { merge: true });
+            setUsers(prev => {
+              if (prev.some(u => u.id === userUid)) {
+                return prev.map(u => u.id === userUid ? { ...u, ...newUser } : u);
+              }
+              return [...prev, newUser];
+            });
             setCurrentUserId(userUid);
           }
         } catch (e) {
           console.error('Error on auth check:', e);
           // Fallback to checking local state if firestore read fails
-          const existing = users.find(u => u.id === userUid || (u.email && u.email.toLowerCase() === fbEmail));
+          const existing = usersRef.current.find(u => u.id === userUid || (u.email && u.email.toLowerCase() === fbEmail));
           if (existing) {
             setCurrentUserId(existing.id);
           } else {
@@ -193,7 +211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     return () => unsubscribe();
-  }, [users]);
+  }, []);
 
   // Firestore Real-time listener for USERS
   useEffect(() => {
@@ -829,10 +847,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedProfile } : u));
     try {
-      await setDoc(doc(db, 'users', userId), updatedProfile, { merge: true });
+      await updateDoc(doc(db, 'users', userId), updatedProfile);
       showNotification('Profile updated successfully!', 'success');
     } catch (e) {
-      handleFirestoreError(e, OperationType.UPDATE, `users/${userId}`);
+      // Fallback to setDoc with merge if update fails (e.g., if document doesn't exist yet)
+      try {
+        await setDoc(doc(db, 'users', userId), updatedProfile, { merge: true });
+        showNotification('Profile updated successfully!', 'success');
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `users/${userId}`);
+      }
     }
   };
 
