@@ -131,49 +131,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (fbUser) {
         const userUid = fbUser.uid;
         const fbEmail = (fbUser.email || '').toLowerCase();
-        const existing = users.find(u => u.id === userUid || (u.email && u.email.toLowerCase() === fbEmail));
-        if (existing) {
-          setCurrentUserId(existing.id);
-        } else {
-          // Create new user profile in Firestore
-          const newUser: User = {
-            id: userUid,
-            name: fbUser.displayName || 'Padel Player',
-            email: fbUser.email || 'player@padely.ge',
-            avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400',
-            age: 26,
-            location: 'Vake, Tbilisi',
-            skillLevel: 'Intermediate',
-            preferredPosition: 'Flexible',
-            bio: 'Active padel enthusiast in Tbilisi!',
-            stats: {
-              totalMatches: 0,
-              wins: 0,
-              losses: 0,
-              winPercentage: 0,
-              currentStreak: 0,
-              longestStreak: 0,
-              hoursPlayed: 0,
-              matchesThisMonth: 0,
-              favoritePartner: 'None yet',
-              rankingPosition: users.length + 1,
-              skillRating: 1000,
-              padelyPoints: 1000,
-              highestPadelyPoints: 1000,
-              monthlyPadelyPoints: 0,
-            },
-            matchHistory: [],
-            role: fbEmail === 'luca.mergell@gmail.com' ? 'admin' : 'user',
-            isProfileComplete: false,
-            createdAt: new Date().toISOString(),
-          };
+        
+        try {
+          // Direct fetch from Firestore is necessary because the local `users` state list
+          // has a loading delay on refresh, which previously caused race conditions that overwrote existing profiles.
+          const userDocRef = doc(db, 'users', userUid);
+          const userDocSnap = await getDoc(userDocRef);
+          
+          if (userDocSnap.exists()) {
+            setCurrentUserId(userUid);
+          } else {
+            // Create new user profile in Firestore only if they don't exist yet
+            const newUser: User = {
+              id: userUid,
+              name: fbUser.displayName || 'Padel Player',
+              email: fbUser.email || 'player@padely.ge',
+              avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400',
+              age: 26,
+              location: 'Vake, Tbilisi',
+              skillLevel: 'Intermediate',
+              preferredPosition: 'Flexible',
+              bio: 'Active padel enthusiast in Tbilisi!',
+              stats: {
+                totalMatches: 0,
+                wins: 0,
+                losses: 0,
+                winPercentage: 0,
+                currentStreak: 0,
+                longestStreak: 0,
+                hoursPlayed: 0,
+                matchesThisMonth: 0,
+                favoritePartner: 'None yet',
+                rankingPosition: users.length + 1,
+                skillRating: 1000,
+                padelyPoints: 1000,
+                highestPadelyPoints: 1000,
+                monthlyPadelyPoints: 0,
+              },
+              matchHistory: [],
+              role: fbEmail === 'luca.mergell@gmail.com' ? 'admin' : 'user',
+              isProfileComplete: false,
+              createdAt: new Date().toISOString(),
+            };
 
-          try {
-            await setDoc(doc(db, 'users', newUser.id), newUser, { merge: true });
-          } catch (e) {
-            handleFirestoreError(e, OperationType.WRITE, `users/${newUser.id}`);
+            await setDoc(userDocRef, newUser, { merge: true });
+            setCurrentUserId(userUid);
           }
-          setCurrentUserId(newUser.id);
+        } catch (e) {
+          console.error('Error on auth check:', e);
+          // Fallback to checking local state if firestore read fails
+          const existing = users.find(u => u.id === userUid || (u.email && u.email.toLowerCase() === fbEmail));
+          if (existing) {
+            setCurrentUserId(existing.id);
+          } else {
+            setCurrentUserId(userUid);
+          }
         }
       } else {
         setCurrentUserId(null);
