@@ -51,7 +51,7 @@ export const PaymentModal: React.FC = () => {
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
           <div>
-            <div className="text-[11px] font-black tracking-widest text-purple-400 uppercase">PADELY.GE</div>
+            <div className="text-[11px] font-black tracking-widest text-purple-400 uppercase font-anta">PADELY.GE</div>
             <h3 className="text-lg font-black text-white">{t.paymentModal.modalTitle}</h3>
             <p className="text-xs text-purple-300/70">{activeMatchForPayment.title}</p>
           </div>

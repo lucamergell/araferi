@@ -37,7 +37,7 @@ export const Navbar: React.FC = () => {
             referrerPolicy="no-referrer"
             className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-purple-400/40 shadow-md shadow-purple-900/50" 
           />
-          <span className="text-xl font-black tracking-widest text-white hover:text-purple-300 transition-colors uppercase font-sans">
+          <span className="text-xl font-black tracking-widest text-white hover:text-purple-300 transition-colors uppercase font-anta">
             PADELY.GE
           </span>
         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { X, ShieldCheck } from 'lucide-react';
+import padelyLogo from '../assets/images/Padely.png';
 
 export const AuthModal: React.FC = () => {
   const { isAuthModalOpen, closeAuthModal, loginWithGoogle } = useApp();
@@ -15,10 +16,13 @@ export const AuthModal: React.FC = () => {
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-700 to-indigo-500 flex items-center justify-center shadow-lg font-black text-lg">
-              P
-            </div>
+          <div className="flex items-center gap-3">
+            <img 
+              src={padelyLogo} 
+              alt="Padely Logo" 
+              referrerPolicy="no-referrer"
+              className="w-10 h-10 rounded-full object-cover border border-purple-400/40 shadow-lg shadow-purple-950/60" 
+            />
             <div>
               <h3 className="text-lg font-black text-white">{t.authModal.title}</h3>
               <p className="text-xs text-purple-300/70">{t.authModal.subtitle}</p>

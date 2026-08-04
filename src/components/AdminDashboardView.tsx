@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { formatDateDDMMYYYY } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
+import padelyLogo from '../assets/images/Padely.png';
 
 export const AdminDashboardView: React.FC = () => {
   const { 
@@ -45,7 +46,17 @@ export const AdminDashboardView: React.FC = () => {
   if (!loggedInEmail) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center p-4">
-        <div className="max-w-sm w-full bg-[#120a21]/90 backdrop-blur-xl border border-purple-900/40 rounded-3xl p-8 text-center shadow-2xl">
+        <div className="max-w-sm w-full bg-[#120a21]/90 backdrop-blur-xl border border-purple-900/40 rounded-3xl p-8 text-center shadow-2xl space-y-6">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <img 
+              src={padelyLogo} 
+              alt="Padely Logo" 
+              referrerPolicy="no-referrer"
+              className="w-16 h-16 rounded-full object-cover border-2 border-purple-400/40 shadow-xl shadow-purple-950/60" 
+            />
+            <h2 className="text-xl font-black text-white">Padely Admin</h2>
+            <p className="text-xs text-purple-300/70">Sign in with Google to continue</p>
+          </div>
           <button
             onClick={() => loginWithGoogle()}
             className="w-full py-4 px-6 rounded-2xl bg-white text-zinc-950 font-bold text-sm flex items-center justify-center gap-3 hover:bg-purple-100 transition-all shadow-xl active:scale-95 cursor-pointer"
