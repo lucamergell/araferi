@@ -201,9 +201,6 @@ export const MatchDetailModal: React.FC = () => {
                           {player.id === currentUser?.id && (
                             <span className="text-[10px] text-purple-300 font-normal shrink-0">({t.common.you})</span>
                           )}
-                          {isPlaceholder && (
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-900/80 text-purple-300 border border-purple-700/50 shrink-0 font-medium">Placeholder</span>
-                          )}
                         </div>
                         <div className="text-[10px] text-purple-300/70 truncate">
                           {player.skillLevel} • {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
