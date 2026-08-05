@@ -137,6 +137,9 @@ export const translations = {
     profileModal: {
       onboardingTitle: 'მოგესალმებით Padely-ზე!',
       onboardingSub: 'გთხოვთ შეავსოთ მოთამაშის პროფილი თამაშების დასაჯავშნად.',
+      enterPhoneTitle: 'ტელეფონის ნომრის მითითება',
+      enterPhoneSub: 'თამაშებზე დასარეგისტრირებლად და შეტყობინებების მისაღებად აუცილებელია ტელეფონის ნომრის მითითება.',
+      phoneRequiredError: 'გთხოვთ მიუთითოთ ტელეფონის ნომერი!',
       reqBanner: 'პროფილის შევსება აუცილებელია შესაფერისი დონის მოთამაშეებთან დასაკავშირებლად.',
       editTitle: 'პროფილის რედაქტირება',
       fullName: 'სრული სახელი',
@@ -427,6 +430,9 @@ export const translations = {
     profileModal: {
       onboardingTitle: 'Welcome to Padely!',
       onboardingSub: 'Please complete your player profile details before accessing match bookings.',
+      enterPhoneTitle: 'Phone Number Required',
+      enterPhoneSub: 'Please enter your phone number to complete registration and join matches.',
+      phoneRequiredError: 'Phone number is required!',
       reqBanner: 'Profile setup is required once to match you with players of your skill level.',
       editTitle: 'Customize Profile',
       fullName: 'Full Name',

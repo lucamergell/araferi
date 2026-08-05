@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { SkillLevel, PlayingPosition } from '../types';
-import { Sparkles, Trophy } from 'lucide-react';
+import { Sparkles, Trophy, PhoneCall } from 'lucide-react';
 
 export const OnboardingProfileModal: React.FC = () => {
-  const { currentUser, updatePlayerProfile, setCurrentView } = useApp();
+  const { currentUser, updatePlayerProfile, setCurrentView, showNotification } = useApp();
   const { t } = useLanguage();
 
   const [hasCompletedLocal, setHasCompletedLocal] = useState<boolean>(() => {
@@ -15,7 +15,7 @@ export const OnboardingProfileModal: React.FC = () => {
 
   const [name, setName] = useState(currentUser?.name || '');
   const [phoneNumber, setPhoneNumber] = useState(currentUser?.phoneNumber || '');
-  const [age, setAge] = useState<number | string>('');
+  const [age, setAge] = useState<number | string>(currentUser?.age && currentUser.age > 0 ? currentUser.age : '');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(currentUser?.skillLevel || 'Beginner');
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(currentUser?.preferredPosition || 'Flexible');
 
@@ -26,20 +26,37 @@ export const OnboardingProfileModal: React.FC = () => {
       }
       if (currentUser.name) setName(currentUser.name);
       if (currentUser.phoneNumber) setPhoneNumber(currentUser.phoneNumber);
+      if (currentUser.age && currentUser.age > 0) setAge(currentUser.age);
       if (currentUser.skillLevel) setSkillLevel(currentUser.skillLevel);
       if (currentUser.preferredPosition) setPreferredPosition(currentUser.preferredPosition);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.phoneNumber]);
 
-  if (!currentUser || currentUser.isProfileComplete || hasCompletedLocal) {
+  const hasPhone = Boolean(currentUser?.phoneNumber && currentUser.phoneNumber.trim() !== '');
+
+  // If user is logged in, but has no phone number, open popup!
+  if (!currentUser || (currentUser.isProfileComplete && hasPhone) || (hasCompletedLocal && hasPhone)) {
     return null;
   }
+
+  const isPhoneOnlyPrompt = !hasPhone && Boolean(currentUser?.name && currentUser?.age);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!name || !name.trim()) {
+      showNotification('Please enter your full name.', 'error');
+      return;
+    }
+
+    if (!phoneNumber || !phoneNumber.trim()) {
+      showNotification(t.profileModal.phoneRequiredError || 'Phone number is required!', 'error');
+      return;
+    }
+
     const parsedAge = Number(age);
     if (!age || isNaN(parsedAge) || parsedAge < 12 || parsedAge > 99) {
+      showNotification('Please enter a valid age between 12 and 99.', 'error');
       return;
     }
 
@@ -49,14 +66,15 @@ export const OnboardingProfileModal: React.FC = () => {
     }
 
     await updatePlayerProfile(currentUser.id, {
-      name,
-      phoneNumber,
+      name: name.trim(),
+      phoneNumber: phoneNumber.trim(),
       age: parsedAge,
       skillLevel,
       preferredPosition,
       isProfileComplete: true,
     });
 
+    showNotification('Profile updated successfully!', 'success');
     setCurrentView('discovery');
   };
 
@@ -67,11 +85,13 @@ export const OnboardingProfileModal: React.FC = () => {
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center mx-auto shadow-xl text-white">
-            <Trophy className="w-7 h-7" />
+            {isPhoneOnlyPrompt ? <PhoneCall className="w-7 h-7 text-amber-300" /> : <Trophy className="w-7 h-7" />}
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">{t.profileModal.onboardingTitle}</h2>
+          <h2 className="text-2xl font-black text-white tracking-tight">
+            {isPhoneOnlyPrompt ? t.profileModal.enterPhoneTitle : t.profileModal.onboardingTitle}
+          </h2>
           <p className="text-xs text-purple-300/80 max-w-sm mx-auto">
-            {t.profileModal.onboardingSub}
+            {isPhoneOnlyPrompt ? t.profileModal.enterPhoneSub : t.profileModal.onboardingSub}
           </p>
         </div>
 
@@ -101,7 +121,7 @@ export const OnboardingProfileModal: React.FC = () => {
 
             <div>
               <label className="block text-purple-300/90 font-bold mb-1">
-                {t.profileModal.phoneNumber} <span className="text-amber-400">*</span>
+                {t.profileModal.phoneNumber} <span className="text-amber-400 font-bold">* ({t.common?.required || 'Required'})</span>
               </label>
               <input
                 type="tel"
@@ -109,7 +129,7 @@ export const OnboardingProfileModal: React.FC = () => {
                 value={phoneNumber}
                 onChange={e => setPhoneNumber(e.target.value)}
                 placeholder={t.profileModal.phonePlaceholder || '+995 5xx xx xx xx'}
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-500 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-lg shadow-purple-900/30"
               />
             </div>
           </div>

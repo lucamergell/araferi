@@ -10,7 +10,7 @@ interface EditProfileModalProps {
 }
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose }) => {
-  const { updatePlayerProfile } = useApp();
+  const { updatePlayerProfile, showNotification } = useApp();
   const { t } = useLanguage();
 
   const [name, setName] = useState(user.name);
@@ -22,12 +22,17 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!phoneNumber || !phoneNumber.trim()) {
+      showNotification(t.profileModal.phoneRequiredError || 'Phone number is required!', 'error');
+      return;
+    }
+
     const parsedAge = Number(age);
     const validAge = !isNaN(parsedAge) && parsedAge > 0 ? parsedAge : 0;
 
     updatePlayerProfile(user.id, {
-      name,
-      phoneNumber,
+      name: name.trim(),
+      phoneNumber: phoneNumber.trim(),
       age: validAge,
       skillLevel,
       preferredPosition,

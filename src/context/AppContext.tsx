@@ -295,7 +295,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const currentUser = firebaseUser ? (() => {
     const found = users.find(u => u.id === currentUserId || (u.email && u.email.toLowerCase() === (firebaseUser.email || '').toLowerCase()));
     const userId = found?.id || firebaseUser.uid;
-    const isCompleted = Boolean(found?.isProfileComplete) || localStorage.getItem(`padely_onboarding_completed_${userId}`) === 'true';
+    const hasPhone = Boolean(found?.phoneNumber && found.phoneNumber.trim() !== '');
+    const isCompleted = (Boolean(found?.isProfileComplete) || localStorage.getItem(`padely_onboarding_completed_${userId}`) === 'true') && hasPhone;
 
     if (found) {
       return { ...found, isProfileComplete: isCompleted };
