@@ -72,6 +72,22 @@ export const getLocalizedSkillLevel = (skill: SkillLevel | string | undefined | 
 };
 
 /**
+  Returns localized district name
+ */
+export const getLocalizedDistrict = (district: string | undefined | null, lang: 'ka' | 'en'): string => {
+  if (!district) return '';
+  const map: Record<string, { ka: string; en: string }> = {
+    'Lisi': { ka: 'ლისი', en: 'Lisi' },
+    'Saburtalo': { ka: 'საბურთალო', en: 'Saburtalo' },
+    'Vake': { ka: 'ვაკე', en: 'Vake' },
+    'Dighomi': { ka: 'დიღომი', en: 'Dighomi' },
+    'Mtatsminda': { ka: 'მთაწმინდა', en: 'Mtatsminda' },
+    'Marjanishvili': { ka: 'მარჯანიშვილი', en: 'Marjanishvili' },
+  };
+  return map[district] ? map[district][lang] : district;
+};
+
+/**
   Returns localized fields for a Match object based on current active language
  */
 export const getLocalizedMatch = (match: Match, lang: 'ka' | 'en') => {
@@ -98,7 +114,10 @@ export const getLocalizedMatch = (match: Match, lang: 'ka' | 'en') => {
     : (isKa ? (match.dayOfWeekKa || match.dayOfWeek) : (match.dayOfWeekEn || match.dayOfWeek));
 
   const formattedDate = formatDateDDMMYYYY(match.date);
+
   const skillLevel = getLocalizedSkillLevel(match.skillLevelRequired, lang);
+
+  const district = getLocalizedDistrict(match.district, lang);
 
   return {
     title,
@@ -107,7 +126,8 @@ export const getLocalizedMatch = (match: Match, lang: 'ka' | 'en') => {
     description,
     dayOfWeek,
     formattedDate,
-    skillLevel
+    skillLevel,
+    district,
   };
 };
 

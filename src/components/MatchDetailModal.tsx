@@ -102,7 +102,7 @@ export const MatchDetailModal: React.FC = () => {
           <div className="absolute bottom-3 sm:bottom-4 left-3.5 sm:left-5 right-3.5 sm:right-5 space-y-1">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <span className="px-2 py-0.5 rounded-md bg-purple-900/80 text-purple-200 border border-purple-600/40 text-[10px] sm:text-[11px] font-bold">
-                {match.district}, {t.matchCard.districtTbilisi}
+                {localized.district || match.district}, {t.matchCard.districtTbilisi}
               </span>
               <span className="px-2 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 text-[10px] sm:text-[11px] font-bold">
                 {localized.skillLevel}

@@ -55,7 +55,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
           {/* District Badge */}
           <div className="absolute top-3 left-3 flex items-center gap-1.5 glass-pill px-3 py-1 rounded-full text-[11px] font-semibold text-white">
             <MapPin className="w-3 h-3 text-purple-400" />
-            <span>{match.district}, {t.matchCard.districtTbilisi}</span>
+            <span>{localized.district || match.district}, {t.matchCard.districtTbilisi}</span>
           </div>
 
           {/* Skill Level Badge & Gallery Count Badge */}

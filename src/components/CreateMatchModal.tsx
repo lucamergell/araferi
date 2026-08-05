@@ -200,6 +200,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
                 <option value="Vake">Vake (ვაკე)</option>
                 <option value="Dighomi">Dighomi (დიღომი)</option>
                 <option value="Mtatsminda">Mtatsminda (მთაწმინდა)</option>
+                <option value="Marjanishvili">Marjanishvili (მარჯანიშვილი)</option>
               </select>
             </div>
 
