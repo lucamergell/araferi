@@ -6,7 +6,7 @@ import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuth
 import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseError';
 
-export type AppView = 'landing' | 'discovery' | 'profile' | 'rankings' | 'admin' | 'dashboard';
+export type AppView = 'landing' | 'discovery' | 'profile' | 'rankings' | 'admin' | 'dashboard' | 'terms' | 'privacy';
 
 interface AppContextType {
   currentUser: User | null;

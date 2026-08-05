@@ -9,6 +9,8 @@ import { MatchDiscoveryView } from './components/MatchDiscoveryView';
 import { ProfileView } from './components/ProfileView';
 import { RankingsView } from './components/RankingsView';
 import { AdminDashboardView } from './components/AdminDashboardView';
+import { TermsOfServiceView } from './components/TermsOfServiceView';
+import { PrivacyPolicyView } from './components/PrivacyPolicyView';
 import { MatchDetailModal } from './components/MatchDetailModal';
 import { PaymentModal } from './components/PaymentModal';
 import { AuthModal } from './components/AuthModal';
@@ -18,7 +20,7 @@ import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 import padelyLogo from './assets/images/Padely.png';
 
 const MainContent: React.FC = () => {
-  const { currentView, notification } = useApp();
+  const { currentView, setCurrentView, notification } = useApp();
   const { t } = useLanguage();
 
   return (
@@ -58,6 +60,8 @@ const MainContent: React.FC = () => {
           {currentView === 'profile' && <ProfileView />}
           {currentView === 'rankings' && <RankingsView />}
           {currentView === 'admin' && <AdminDashboardView />}
+          {currentView === 'terms' && <TermsOfServiceView />}
+          {currentView === 'privacy' && <PrivacyPolicyView />}
         </main>
       </div>
 
@@ -85,8 +89,28 @@ const MainContent: React.FC = () => {
             <span className="text-purple-400/80">— Organized Padel Matches in Georgia</span>
           </div>
 
-          <div className="text-[11px] text-purple-300/60 font-medium">
-            {t.footer.clubsList}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                setCurrentView('terms');
+                window.scrollTo(0, 0);
+              }}
+              className="text-purple-300/80 hover:text-purple-100 text-xs font-semibold underline underline-offset-4 decoration-purple-500/50 hover:decoration-purple-400 transition-all cursor-pointer"
+            >
+              Terms of Service
+            </button>
+            <button
+              onClick={() => {
+                setCurrentView('privacy');
+                window.scrollTo(0, 0);
+              }}
+              className="text-purple-300/80 hover:text-purple-100 text-xs font-semibold underline underline-offset-4 decoration-purple-500/50 hover:decoration-purple-400 transition-all cursor-pointer"
+            >
+              Privacy Policy
+            </button>
+            <div className="text-[11px] text-purple-300/60 font-medium hidden sm:block">
+              {t.footer.clubsList}
+            </div>
           </div>
 
         </div>
