@@ -12,6 +12,14 @@ interface AdminEditPlayerModalProps {
 export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user, onClose }) => {
   const { updatePlayerStats, updatePlayerProfile } = useApp();
 
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
+  const [age, setAge] = useState<number | string>(user.age || '');
+  const [location, setLocation] = useState(user.location || '');
+  const [role, setRole] = useState<'admin' | 'user'>(user.role || 'user');
+  const [bio, setBio] = useState(user.bio || '');
+
   const [padelyPoints, setPadelyPoints] = useState(user.stats.padelyPoints ?? user.stats.skillRating ?? 1000);
   const [totalMatches, setTotalMatches] = useState(user.stats.totalMatches);
   const [wins, setWins] = useState(user.stats.wins);
@@ -23,8 +31,23 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(user.skillLevel);
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(user.preferredPosition);
 
+  const [activeTab, setActiveTab] = useState<'profile' | 'stats'>('profile');
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Update profile fields
+    updatePlayerProfile(user.id, {
+      name,
+      email,
+      phoneNumber,
+      age: Number(age) || 0,
+      location,
+      role,
+      bio,
+      skillLevel,
+      preferredPosition,
+    });
 
     // Update stats
     updatePlayerStats(user.id, {
@@ -38,151 +61,258 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
       matchesThisMonth,
     });
 
-    // Update profile fields
-    updatePlayerProfile(user.id, {
-      skillLevel,
-      preferredPosition,
-    });
-
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#120a21] border border-amber-800/50 rounded-3xl shadow-2xl text-white my-auto p-5 sm:p-6 space-y-5 custom-scrollbar">
+      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-[#120a21] border border-amber-800/50 rounded-3xl shadow-2xl text-white my-auto p-5 sm:p-6 space-y-5 custom-scrollbar">
         
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
           <div className="flex items-center gap-2.5">
-            <UserAvatar name={user.name} userId={user.id} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-amber-500/50" />
+            <UserAvatar name={name} userId={user.id} className="w-10 h-10 rounded-xl text-sm font-bold ring-2 ring-amber-500/50" />
             <div>
-              <h3 className="text-base font-black text-white">Admin Stat Adjustment</h3>
-              <p className="text-xs text-amber-300/80">{user.name} ({user.email})</p>
+              <h3 className="text-base font-black text-white">Edit Player Profile</h3>
+              <p className="text-xs text-amber-300/80">{name} ({email})</p>
             </div>
           </div>
 
-          <button onClick={onClose} className="p-2 rounded-full bg-purple-950/50 text-purple-300">
+          <button onClick={onClose} className="p-2 rounded-full bg-purple-950/50 text-purple-300 hover:text-white">
             <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Modal Navigation Tabs */}
+        <div className="flex bg-purple-950/50 p-1 rounded-2xl border border-purple-800/40 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className={`flex-1 py-2 rounded-xl transition-all ${
+              activeTab === 'profile'
+                ? 'bg-amber-600 text-white shadow'
+                : 'text-purple-300 hover:text-white'
+            }`}
+          >
+            Profile Information
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('stats')}
+            className={`flex-1 py-2 rounded-xl transition-all ${
+              activeTab === 'stats'
+                ? 'bg-amber-600 text-white shadow'
+                : 'text-purple-300 hover:text-white'
+            }`}
+          >
+            Stats & Padely Points
           </button>
         </div>
 
         <form onSubmit={handleSave} className="space-y-4 text-xs">
           
-          <div className="p-3.5 bg-amber-950/20 border border-amber-800/30 rounded-2xl space-y-3">
-            <div className="font-bold text-amber-300 text-xs">Padely Points & Ranking Controls</div>
+          {activeTab === 'profile' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    value={phoneNumber}
+                    onChange={e => setPhoneNumber(e.target.value)}
+                    placeholder="+995 5xx xxx xxx"
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Age</label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={e => setAge(e.target.value)}
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Location / District</label>
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    placeholder="Vake, Tbilisi"
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Skill Level</label>
+                  <select
+                    value={skillLevel}
+                    onChange={e => setSkillLevel(e.target.value as SkillLevel)}
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold"
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Preferred Position</label>
+                  <select
+                    value={preferredPosition}
+                    onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold"
+                  >
+                    <option value="Left / Drive">Left / Drive</option>
+                    <option value="Right / Backhand">Right / Backhand</option>
+                    <option value="Flexible">Flexible</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">System Role</label>
+                  <select
+                    value={role}
+                    onChange={e => setRole(e.target.value as 'admin' | 'user')}
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-amber-300 font-bold"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-purple-300/80 font-bold mb-1">Padely Points (PP)</label>
-                <input
-                  type="number"
-                  value={padelyPoints}
-                  onChange={e => setPadelyPoints(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl font-black text-emerald-400"
+                <label className="block text-purple-300/80 font-bold mb-1">Bio / Notes</label>
+                <textarea
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white"
                 />
               </div>
+            </div>
+          )}
 
-              <div>
-                <label className="block text-purple-300/80 font-bold mb-1">Self-Selected Level</label>
-                <select
-                  value={skillLevel}
-                  onChange={e => setSkillLevel(e.target.value as SkillLevel)}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold"
-                >
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                  <option value="Expert">Expert</option>
-                </select>
+          {activeTab === 'stats' && (
+            <div className="space-y-4">
+              <div className="p-3.5 bg-amber-950/20 border border-amber-800/30 rounded-2xl space-y-3">
+                <div className="font-bold text-amber-300 text-xs">Padely Points & Ranking Controls</div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Padely Points (PP)</label>
+                  <input
+                    type="number"
+                    value={padelyPoints}
+                    onChange={e => setPadelyPoints(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl font-black text-emerald-400 text-base"
+                  />
+                </div>
+              </div>
+
+              {/* Match Counts */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Total Matches</label>
+                  <input
+                    type="number"
+                    value={totalMatches}
+                    onChange={e => setTotalMatches(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Wins</label>
+                  <input
+                    type="number"
+                    value={wins}
+                    onChange={e => setWins(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-emerald-400 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Losses</label>
+                  <input
+                    type="number"
+                    value={losses}
+                    onChange={e => setLosses(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-red-400 font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Streak & Hours */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Win Streak 🔥</label>
+                  <input
+                    type="number"
+                    value={currentStreak}
+                    onChange={e => setCurrentStreak(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-amber-300 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Hours Played</label>
+                  <input
+                    type="number"
+                    value={hoursPlayed}
+                    onChange={e => setHoursPlayed(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-300/80 font-bold mb-1">Matches This Month</label>
+                  <input
+                    type="number"
+                    value={matchesThisMonth}
+                    onChange={e => setMatchesThisMonth(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Match Counts */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Total Matches</label>
-              <input
-                type="number"
-                value={totalMatches}
-                onChange={e => setTotalMatches(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Wins</label>
-              <input
-                type="number"
-                value={wins}
-                onChange={e => setWins(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-emerald-400 font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Losses</label>
-              <input
-                type="number"
-                value={losses}
-                onChange={e => setLosses(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-red-400 font-bold"
-              />
-            </div>
-          </div>
-
-          {/* Streak & Hours */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Win Streak 🔥</label>
-              <input
-                type="number"
-                value={currentStreak}
-                onChange={e => setCurrentStreak(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-amber-300 font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Hours Played</label>
-              <input
-                type="number"
-                value={hoursPlayed}
-                onChange={e => setHoursPlayed(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">Matches This Month</label>
-              <input
-                type="number"
-                value={matchesThisMonth}
-                onChange={e => setMatchesThisMonth(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-              />
-            </div>
-          </div>
-
-          {/* Playing preferences */}
-          <div>
-            <label className="block text-purple-300/80 font-bold mb-1">Position</label>
-            <select
-              value={preferredPosition}
-              onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
-              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white"
-            >
-              <option value="Left / Drive">Left / Drive</option>
-              <option value="Right / Backhand">Right / Backhand</option>
-              <option value="Flexible">Flexible</option>
-            </select>
-          </div>
+          )}
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-xl flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all mt-4"
           >
             <Save className="w-4 h-4" />
-            <span>Update Player Statistics</span>
+            <span>Save Profile & Stats Changes</span>
           </button>
 
         </form>

@@ -52,6 +52,7 @@ interface AppContextType {
   // Placeholder Management Actions
   addPlaceholderPlayer: (matchId: string) => Promise<void>;
   fillMatchWithPlaceholders: (matchId: string) => Promise<void>;
+  adminAssignPlayerToMatch: (matchId: string, userId: string) => Promise<void>;
   removePlayerFromMatch: (matchId: string, userId: string) => Promise<void>;
   clearPlaceholdersFromMatch: (matchId: string) => Promise<void>;
   
@@ -751,6 +752,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const adminAssignPlayerToMatch = async (matchId: string, userId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can assign players to matches.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    if (targetMatch.joinedUserIds.includes(userId)) {
+      showNotification('Player is already assigned to this match.', 'info');
+      return;
+    }
+
+    if (targetMatch.joinedUserIds.length >= targetMatch.totalSpots) {
+      showNotification('This match is already fully booked.', 'error');
+      return;
+    }
+
+    const assignedUser = users.find(u => u.id === userId);
+    const updatedJoined = [...targetMatch.joinedUserIds, userId];
+    const newStatus = updatedJoined.length >= targetMatch.totalSpots ? 'Fully Booked' : 'Open';
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), {
+        joinedUserIds: updatedJoined,
+        status: newStatus,
+      });
+      showNotification(`Assigned ${assignedUser ? assignedUser.name : 'player'} to match!`, 'success');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
+  };
+
   const removePlayerFromMatch = async (matchId: string, userId: string) => {
     if (currentUser?.role !== 'admin' && currentUser?.id !== userId) {
       showNotification('Only admins can remove players from matches.', 'error');
@@ -1138,6 +1172,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         addPlaceholderPlayer,
         fillMatchWithPlaceholders,
+        adminAssignPlayerToMatch,
         removePlayerFromMatch,
         clearPlaceholdersFromMatch,
         

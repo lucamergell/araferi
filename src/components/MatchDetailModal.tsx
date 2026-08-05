@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info, UserPlus, Trash2, Bot } from 'lucide-react';
@@ -17,9 +17,12 @@ export const MatchDetailModal: React.FC = () => {
     showNotification,
     addPlaceholderPlayer,
     fillMatchWithPlaceholders,
+    adminAssignPlayerToMatch,
     removePlayerFromMatch,
     clearPlaceholdersFromMatch
   } = useApp();
+
+  const [selectedAssignUserId, setSelectedAssignUserId] = useState<string>('');
 
   const { language, t } = useLanguage();
 
@@ -182,6 +185,40 @@ export const MatchDetailModal: React.FC = () => {
                 </span>
               </div>
             </div>
+
+            {/* Admin Player Direct Assignment Bar */}
+            {currentUser?.role === 'admin' && emptySpotsCount > 0 && (
+              <div className="p-3 mb-3 rounded-2xl bg-amber-950/20 border border-amber-800/40 flex flex-col sm:flex-row items-center gap-2">
+                <span className="text-xs font-bold text-amber-300 whitespace-nowrap">Admin Assign Player:</span>
+                <select
+                  value={selectedAssignUserId}
+                  onChange={(e) => setSelectedAssignUserId(e.target.value)}
+                  className="flex-1 w-full px-3 py-1.5 bg-[#120a21] border border-purple-800/50 rounded-xl text-xs text-white"
+                >
+                  <option value="">-- Select Registered Player --</option>
+                  {users
+                    .filter(u => !match.joinedUserIds.includes(u.id))
+                    .map(u => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.skillLevel} • {u.stats.padelyPoints ?? 1000} PP) {u.role === 'admin' ? '[Admin]' : ''}
+                      </option>
+                    ))}
+                </select>
+                <button
+                  disabled={!selectedAssignUserId}
+                  onClick={() => {
+                    if (selectedAssignUserId) {
+                      adminAssignPlayerToMatch(match.id, selectedAssignUserId);
+                      setSelectedAssignUserId('');
+                    }
+                  }}
+                  className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Assign</span>
+                </button>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {joinedPlayers.map((player) => {

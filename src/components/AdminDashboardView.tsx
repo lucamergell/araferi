@@ -19,6 +19,9 @@ export const AdminDashboardView: React.FC = () => {
     payments, 
     cancelMatch, 
     openUserProfile,
+    openMatchDetails,
+    adminAssignPlayerToMatch,
+    removePlayerFromMatch,
     resetToDefaultData,
     resetAllRankings,
     showNotification,
@@ -40,6 +43,9 @@ export const AdminDashboardView: React.FC = () => {
   const [editingMatch, setEditingMatch] = useState<Match | undefined>(undefined);
   const [editingPlayerUser, setEditingPlayerUser] = useState<User | null>(null);
   const [confirmingMatchResult, setConfirmingMatchResult] = useState<Match | null>(null);
+  const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
+  const [assignPlayerForMatch, setAssignPlayerForMatch] = useState<{ [matchId: string]: string }>({});
+  const [assignMatchForPlayer, setAssignMatchForPlayer] = useState<{ [userId: string]: string }>({});
 
   const [matchSearch, setMatchSearch] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
@@ -445,95 +451,204 @@ export const AdminDashboardView: React.FC = () => {
               </div>
 
               <div className="divide-y divide-purple-900/30">
-                {filteredMatches.map((m) => (
-                  <div key={m.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors">
-                    
-                    {/* Title & Location */}
-                    <div className="col-span-4 pr-2 flex items-center gap-2.5">
-                      <img 
-                        src={m.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'} 
-                        alt={m.title} 
-                        className="w-10 h-10 rounded-lg object-cover shrink-0 ring-1 ring-purple-600/40" 
-                      />
-                      <div>
-                        <div className="font-bold text-white line-clamp-1">{m.title}</div>
-                        <div className="text-[10px] text-purple-300/70">📍 {m.locationName} ({m.district})</div>
+                {filteredMatches.map((m) => {
+                  const isExpanded = expandedMatchId === m.id;
+                  const joinedPlayers = users.filter(u => m.joinedUserIds.includes(u.id));
+                  const availablePlayersForMatch = users.filter(u => !m.joinedUserIds.includes(u.id));
+
+                  return (
+                    <div key={m.id} className="divide-y divide-purple-900/20">
+                      <div className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors">
+                        
+                        {/* Title & Location */}
+                        <div className="col-span-4 pr-2 flex items-center gap-2.5">
+                          <img 
+                            src={m.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'} 
+                            alt={m.title} 
+                            className="w-10 h-10 rounded-lg object-cover shrink-0 ring-1 ring-purple-600/40 cursor-pointer"
+                            onClick={() => openMatchDetails(m.id)}
+                          />
+                          <div>
+                            <div 
+                              onClick={() => openMatchDetails(m.id)}
+                              className="font-bold text-white hover:text-purple-300 transition-colors cursor-pointer line-clamp-1"
+                            >
+                              {m.title}
+                            </div>
+                            <div className="text-[10px] text-purple-300/70">📍 {m.locationName} ({m.district})</div>
+                          </div>
+                        </div>
+
+                        {/* Date & Time */}
+                        <div className="col-span-3">
+                          <div className="font-semibold text-purple-200">{m.dayOfWeek}, {formatDateDDMMYYYY(m.date)}</div>
+                          <div className="text-[10px] text-purple-300/70">{m.startTime} ({m.durationMinutes}m)</div>
+                        </div>
+
+                        {/* Spots */}
+                        <div className="col-span-2 flex items-center gap-1.5">
+                          <button
+                            onClick={() => setExpandedMatchId(isExpanded ? null : m.id)}
+                            className={`px-2 py-0.5 rounded font-bold text-[10px] transition-all flex items-center gap-1 ${
+                              m.status === 'Cancelled'
+                                ? 'bg-red-950 text-red-400 border border-red-800/40'
+                                : m.joinedUserIds.length >= m.totalSpots
+                                ? 'bg-zinc-800 text-zinc-300 border border-zinc-700/40'
+                                : 'bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-700/40 cursor-pointer'
+                            }`}
+                            title="Click to view & manage player roster"
+                          >
+                            <Users className="w-3 h-3 text-purple-400" />
+                            <span>{m.status === 'Cancelled' ? 'Cancelled' : `${m.joinedUserIds.length}/${m.totalSpots} Roster`}</span>
+                          </button>
+                        </div>
+
+                        {/* Price */}
+                        <div className="col-span-1 font-bold text-emerald-400">
+                          {m.pricePerPlayerGel} GEL
+                        </div>
+
+                        {/* Actions */}
+                        <div className="col-span-2 flex items-center justify-end gap-1.5">
+                          {m.status !== 'Cancelled' && (
+                            <button
+                              onClick={() => setConfirmingMatchResult(m)}
+                              title="Record Match Score & Award Padely Points"
+                              className={`px-2 py-1 rounded-lg border text-[10px] font-bold flex items-center gap-1 ${
+                                m.isResultConfirmed 
+                                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-600/50' 
+                                  : 'bg-amber-950/80 hover:bg-amber-900 text-amber-300 border-amber-600/50'
+                              }`}
+                            >
+                              <Trophy className="w-3 h-3" />
+                              <span>{m.isResultConfirmed ? 'Result Confirmed' : 'Record Result'}</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => setExpandedMatchId(isExpanded ? null : m.id)}
+                            title="Manage Roster & Assign/Remove Players"
+                            className="p-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/30 cursor-pointer"
+                          >
+                            <Users className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setEditingMatch(m);
+                              setIsCreateModalOpen(true);
+                            }}
+                            title="Edit Match Details"
+                            className="p-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 border border-purple-800/30 cursor-pointer"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+
+                          {m.status !== 'Cancelled' && (
+                            <button
+                              onClick={() => cancelMatch(m.id)}
+                              title="Cancel Match & Auto Refund Players"
+                              className="px-2 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/60 text-red-300 border border-red-800/30 text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <XCircle className="w-3 h-3" />
+                              <span>Cancel</span>
+                            </button>
+                          )}
+                        </div>
+
                       </div>
-                    </div>
 
-                    {/* Date & Time */}
-                    <div className="col-span-3">
-                      <div className="font-semibold text-purple-200">{m.dayOfWeek}, {formatDateDDMMYYYY(m.date)}</div>
-                      <div className="text-[10px] text-purple-300/70">{m.startTime} ({m.durationMinutes}m)</div>
-                    </div>
+                      {/* Expanded Match Roster Drawer */}
+                      {isExpanded && (
+                        <div className="p-4 bg-purple-950/30 border-t border-purple-900/40 space-y-3 animate-fadeIn">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-amber-300 text-xs flex items-center gap-1.5">
+                              <Users className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Player Roster Management for "{m.title}"</span>
+                            </span>
+                            <span className="text-[10px] text-purple-300">
+                              {m.joinedUserIds.length}/{m.totalSpots} spots filled
+                            </span>
+                          </div>
 
-                    {/* Spots */}
-                    <div className="col-span-2">
-                      <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                        m.status === 'Cancelled'
-                          ? 'bg-red-950 text-red-400'
-                          : m.joinedUserIds.length >= m.totalSpots
-                          ? 'bg-zinc-800 text-zinc-300'
-                          : 'bg-purple-950 text-purple-300'
-                      }`}>
-                        {m.status === 'Cancelled' ? 'Cancelled' : `${m.joinedUserIds.length}/${m.totalSpots} Joined`}
-                      </span>
-                    </div>
+                          {/* Roster List */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                            {joinedPlayers.map((player) => (
+                              <div
+                                key={player.id}
+                                className="flex items-center justify-between p-2 rounded-xl bg-[#120a21] border border-purple-800/40"
+                              >
+                                <div 
+                                  className="flex items-center gap-2 cursor-pointer min-w-0 flex-1 pr-1"
+                                  onClick={() => openUserProfile(player.id)}
+                                >
+                                  <UserAvatar name={player.name} userId={player.id} className="w-7 h-7 rounded-lg text-[10px] font-bold ring-1 ring-purple-600/40 shrink-0" />
+                                  <div className="truncate">
+                                    <div className="font-bold text-white text-[11px] truncate">{player.name}</div>
+                                    <div className="text-[9px] text-purple-300/70">{player.skillLevel}</div>
+                                  </div>
+                                </div>
 
-                    {/* Price */}
-                    <div className="col-span-1 font-bold text-emerald-400">
-                      {m.pricePerPlayerGel} GEL
-                    </div>
+                                <button
+                                  onClick={() => removePlayerFromMatch(m.id, player.id)}
+                                  title="Remove player from match"
+                                  className="p-1 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-400 border border-red-800/30 shrink-0 cursor-pointer"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
 
-                    {/* Actions */}
-                    <div className="col-span-2 flex items-center justify-end gap-1.5">
-                      {m.status !== 'Cancelled' && (
-                        <button
-                          onClick={() => setConfirmingMatchResult(m)}
-                          title="Record Match Score & Award Padely Points"
-                          className={`px-2 py-1 rounded-lg border text-[10px] font-bold flex items-center gap-1 ${
-                            m.isResultConfirmed 
-                              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-600/50' 
-                              : 'bg-amber-950/80 hover:bg-amber-900 text-amber-300 border-amber-600/50'
-                          }`}
-                        >
-                          <Trophy className="w-3 h-3" />
-                          <span>{m.isResultConfirmed ? 'Result Confirmed' : 'Record Result'}</span>
-                        </button>
+                            {Array.from({ length: Math.max(0, m.totalSpots - m.joinedUserIds.length) }).map((_, i) => (
+                              <div key={i} className="p-2 rounded-xl border border-dashed border-purple-800/40 text-purple-400/50 flex items-center justify-center text-[10px] font-semibold">
+                                Empty Spot #{m.joinedUserIds.length + i + 1}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Quick Assign Dropdown */}
+                          {m.joinedUserIds.length < m.totalSpots && availablePlayersForMatch.length > 0 && (
+                            <div className="pt-2 flex flex-col sm:flex-row items-center gap-2 border-t border-purple-900/30">
+                              <span className="text-[11px] font-bold text-purple-200 shrink-0">Assign Player:</span>
+                              <select
+                                value={assignPlayerForMatch[m.id] || ''}
+                                onChange={(e) => setAssignPlayerForMatch({ ...assignPlayerForMatch, [m.id]: e.target.value })}
+                                className="flex-1 w-full px-3 py-1.5 bg-[#120a21] border border-purple-800/40 rounded-xl text-xs text-white"
+                              >
+                                <option value="">-- Choose Registered Player --</option>
+                                {availablePlayersForMatch.map(p => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.name} ({p.skillLevel} • {p.stats.padelyPoints ?? 1000} PP)
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                disabled={!assignPlayerForMatch[m.id]}
+                                onClick={() => {
+                                  const pid = assignPlayerForMatch[m.id];
+                                  if (pid) {
+                                    adminAssignPlayerToMatch(m.id, pid);
+                                    setAssignPlayerForMatch({ ...assignPlayerForMatch, [m.id]: '' });
+                                  }
+                                }}
+                                className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white font-bold text-xs cursor-pointer shadow"
+                              >
+                                Assign Player
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
-
-                      <button
-                        onClick={() => {
-                          setEditingMatch(m);
-                          setIsCreateModalOpen(true);
-                        }}
-                        title="Edit Match"
-                        className="p-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 border border-purple-800/30"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-
-                      {m.status !== 'Cancelled' && (
-                        <button
-                          onClick={() => cancelMatch(m.id)}
-                          title="Cancel Match & Auto Refund Players"
-                          className="px-2 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/60 text-red-300 border border-red-800/30 text-[10px] font-bold flex items-center gap-1"
-                        >
-                          <XCircle className="w-3 h-3" />
-                          <span>Cancel</span>
-                        </button>
-                      )}
                     </div>
-
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
           </div>
         )}
 
-        {/* TAB 3: Player Management & Manual Stat Updates */}
+        {/* TAB 3: Player Management & Profile Editing */}
         {activeTab === 'players' && (
           <div className="space-y-4">
             
@@ -541,7 +656,7 @@ export const AdminDashboardView: React.FC = () => {
               <Search className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search player by name or email..."
+                placeholder="Search player by name, email or district..."
                 value={playerSearch}
                 onChange={e => setPlayerSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-[#120a21] border border-purple-800/40 rounded-xl text-xs text-white"
@@ -550,55 +665,101 @@ export const AdminDashboardView: React.FC = () => {
 
             <div className="bg-[#120a21] rounded-3xl border border-purple-900/40 overflow-hidden text-xs">
               <div className="p-4 bg-purple-950/40 border-b border-purple-900/30 grid grid-cols-12 font-bold text-purple-300 uppercase tracking-wider text-[10px]">
-                <div className="col-span-4">Player Info</div>
-                <div className="col-span-2">Skill Level & Position</div>
+                <div className="col-span-3">Player Info</div>
+                <div className="col-span-2">Skill & Position</div>
                 <div className="col-span-2">Matches & Wins</div>
-                <div className="col-span-2">PadelyPoints (PP)</div>
-                <div className="col-span-2 text-right">Admin Action</div>
+                <div className="col-span-1">PadelyPoints</div>
+                <div className="col-span-2">Assign to Open Match</div>
+                <div className="col-span-2 text-right">Actions</div>
               </div>
 
               <div className="divide-y divide-purple-900/30">
-                {filteredPlayers.map((player) => (
-                  <div key={player.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors">
-                    
-                    <div className="col-span-4 flex items-center gap-2.5">
-                      <UserAvatar name={player.name} userId={player.id} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-purple-600/30" />
-                      <div>
-                        <div className="font-bold text-white flex items-center gap-1">
-                          <span>{player.name}</span>
-                          {player.role === 'admin' && <span className="text-[9px] text-amber-300 font-bold">(Admin)</span>}
-                        </div>
-                        <div className="text-[10px] text-purple-300/70">{player.email} • {player.location}</div>
-                      </div>
-                    </div>
+                {filteredPlayers.map((player) => {
+                  const openMatchesForPlayer = matches.filter(
+                    m => m.status !== 'Cancelled' && m.joinedUserIds.length < m.totalSpots && !m.joinedUserIds.includes(player.id)
+                  );
 
-                    <div className="col-span-2 space-y-0.5">
-                      <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-200 border border-purple-800/40 text-[10px] font-bold">
-                        {player.skillLevel}
-                      </span>
-                      <div className="text-[10px] text-purple-300/70">{player.preferredPosition}</div>
-                    </div>
-
-                    <div className="col-span-2">
-                      <div className="font-bold text-white">{player.stats.totalMatches} matches</div>
-                      <div className="text-[10px] text-emerald-400">{player.stats.wins}W - {player.stats.losses}L ({player.stats.winPercentage}%)</div>
-                    </div>
-
-                    <div className="col-span-2 font-black text-amber-300 text-sm">
-                      {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
-                    </div>
-
-                    <div className="col-span-2 text-right">
-                      <button
-                        onClick={() => setEditingPlayerUser(player)}
-                        className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] shadow transition-all"
+                  return (
+                    <div key={player.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors gap-1">
+                      
+                      {/* Player Info */}
+                      <div 
+                        onClick={() => openUserProfile(player.id)}
+                        className="col-span-3 flex items-center gap-2.5 cursor-pointer"
                       >
-                        Update Stats
-                      </button>
-                    </div>
+                        <UserAvatar name={player.name} userId={player.id} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-purple-600/30 shrink-0" />
+                        <div className="truncate">
+                          <div className="font-bold text-white flex items-center gap-1 truncate hover:text-purple-300 transition-colors">
+                            <span className="truncate">{player.name}</span>
+                            {player.role === 'admin' && <span className="text-[9px] text-amber-300 font-bold shrink-0">(Admin)</span>}
+                          </div>
+                          <div className="text-[10px] text-purple-300/70 truncate">{player.email} • {player.location}</div>
+                        </div>
+                      </div>
 
-                  </div>
-                ))}
+                      {/* Skill & Position */}
+                      <div className="col-span-2 space-y-0.5">
+                        <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-200 border border-purple-800/40 text-[10px] font-bold inline-block">
+                          {player.skillLevel}
+                        </span>
+                        <div className="text-[10px] text-purple-300/70">{player.preferredPosition}</div>
+                      </div>
+
+                      {/* Matches & Wins */}
+                      <div className="col-span-2">
+                        <div className="font-bold text-white">{player.stats.totalMatches} matches</div>
+                        <div className="text-[10px] text-emerald-400">{player.stats.wins}W - {player.stats.losses}L ({player.stats.winPercentage}%)</div>
+                      </div>
+
+                      {/* PP */}
+                      <div className="col-span-1 font-black text-amber-300 text-xs">
+                        {player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP
+                      </div>
+
+                      {/* Assign to Match Dropdown */}
+                      <div className="col-span-2 flex items-center gap-1">
+                        <select
+                          value={assignMatchForPlayer[player.id] || ''}
+                          onChange={(e) => setAssignMatchForPlayer({ ...assignMatchForPlayer, [player.id]: e.target.value })}
+                          className="w-full px-2 py-1 bg-purple-950/60 border border-purple-800/40 rounded-lg text-[10px] text-white truncate"
+                        >
+                          <option value="">-- Assign Match --</option>
+                          {openMatchesForPlayer.map(m => (
+                            <option key={m.id} value={m.id}>
+                              {m.title} ({m.joinedUserIds.length}/{m.totalSpots})
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          disabled={!assignMatchForPlayer[player.id]}
+                          onClick={() => {
+                            const mid = assignMatchForPlayer[player.id];
+                            if (mid) {
+                              adminAssignPlayerToMatch(mid, player.id);
+                              setAssignMatchForPlayer({ ...assignMatchForPlayer, [player.id]: '' });
+                            }
+                          }}
+                          className="px-2 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white font-bold text-[10px] cursor-pointer shrink-0"
+                          title="Assign player to selected match"
+                        >
+                          Assign
+                        </button>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="col-span-2 text-right">
+                        <button
+                          onClick={() => setEditingPlayerUser(player)}
+                          className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10px] shadow transition-all cursor-pointer flex items-center gap-1 ml-auto"
+                        >
+                          <Edit className="w-3 h-3" />
+                          <span>Edit Profile & Stats</span>
+                        </button>
+                      </div>
+
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
