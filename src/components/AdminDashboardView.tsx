@@ -501,7 +501,7 @@ export const AdminDashboardView: React.FC = () => {
                             title="Click to view & manage player roster"
                           >
                             <Users className="w-3 h-3 text-purple-400" />
-                            <span>{m.status === 'Cancelled' ? 'Cancelled' : `${m.joinedUserIds.length}/${m.totalSpots} Roster`}</span>
+                            <span>{m.status === 'Cancelled' ? 'Deactivated' : `${m.joinedUserIds.length}/${m.totalSpots} Roster`}</span>
                           </button>
                         </div>
 

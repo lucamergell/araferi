@@ -8,6 +8,8 @@ export const MatchDiscoveryView: React.FC = () => {
   const { matches, openMatchDetails } = useApp();
   const { t } = useLanguage();
 
+  const activeMatches = matches.filter(m => m.status !== 'Cancelled');
+
   return (
     <div className="min-h-screen text-white py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-24">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -35,14 +37,14 @@ export const MatchDiscoveryView: React.FC = () => {
 
         {/* Results Info */}
         <div className="flex items-center justify-between text-xs text-purple-200/80 px-1 font-medium">
-          <span>{t.discovery.showing} <strong className="text-white font-bold">{matches.length}</strong> {t.discovery.matchesAvailable}</span>
+          <span>{t.discovery.showing} <strong className="text-white font-bold">{activeMatches.length}</strong> {t.discovery.matchesAvailable}</span>
           <span>{t.discovery.currencyNote}</span>
         </div>
 
         {/* Matches Grid */}
-        {matches.length > 0 ? (
+        {activeMatches.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {matches.map((match) => (
+            {activeMatches.map((match) => (
               <MatchCard
                 key={match.id}
                 match={match}
