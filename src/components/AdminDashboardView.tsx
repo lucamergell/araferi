@@ -147,7 +147,12 @@ export const AdminDashboardView: React.FC = () => {
     ? Number(((totalJoinedAcrossMatches / totalSpotsAcrossMatches) * 100).toFixed(1))
     : 0;
 
-  const mostActivePlayers = [...users]
+  // Filter out placeholder users for admin view
+  const realUsers = users.filter(
+    u => !u.isPlaceholder && !u.id.startsWith('ph_') && !u.id.startsWith('placeholder_') && !u.email?.includes('placeholder')
+  );
+
+  const mostActivePlayers = [...realUsers]
     .sort((a, b) => b.stats.totalMatches - a.stats.totalMatches)
     .slice(0, 4);
 
@@ -156,7 +161,7 @@ export const AdminDashboardView: React.FC = () => {
     `${m.title} ${m.locationName} ${m.district}`.toLowerCase().includes(matchSearch.toLowerCase())
   );
 
-  const filteredPlayers = users.filter(u =>
+  const filteredPlayers = realUsers.filter(u =>
     `${u.name} ${u.email} ${u.location}`.toLowerCase().includes(playerSearch.toLowerCase())
   );
 
@@ -235,7 +240,7 @@ export const AdminDashboardView: React.FC = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Player Profiles & Stats ({users.length})</span>
+            <span>Player Profiles & Stats ({realUsers.length})</span>
           </button>
 
           <button
@@ -354,7 +359,7 @@ export const AdminDashboardView: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-purple-300">Total Registered Players:</span>
-                    <strong className="text-white">{users.length} players</strong>
+                    <strong className="text-white">{realUsers.length} players</strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-purple-300">Refund Guarantee Compliance:</span>
