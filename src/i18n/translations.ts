@@ -60,6 +60,8 @@ export const translations = {
       districtTbilisi: 'თბილისი',
       refundGuarantee: 'ფასში შედის:',
       refundSub: '4 ჩოგანი და 3 ბურთი.',
+      viewImages: 'სურათები',
+      openMaps: 'რუკა',
     },
 
     // Match Details Modal
@@ -87,6 +89,8 @@ export const translations = {
       closeBtn: 'დახურვა',
       shareBtn: 'გაზიარება',
       shareSuccess: 'თამაშის ბმული დაკოპირდა!',
+      viewImages: 'სურათების ნახვა',
+      openInGoogleMaps: 'Google Maps-ზე ნახვა',
     },
 
     // Auth Modal
@@ -178,6 +182,11 @@ export const translations = {
       descriptionEn: 'აღწერა (ინგლისურად)',
       bannerImageUrl: 'ბანერის ფოტოს ბმული (URL)',
       bannerImageHelp: 'შეიყვანეთ სურათის ბმული მატჩის ბარათის ბანერისთვის',
+      googleMapsUrl: 'Google Maps ბმული',
+      googleMapsHelp: 'ჩასვით Google Maps-ის ლოკაციის ბმული',
+      galleryImages: 'გალერეის დამატებითი ფოტოები',
+      galleryImagesHelp: 'დაამატეთ კორტის ან კლუბის ფოტოების ბმულები',
+      addGalleryPhoto: 'ფოტოს დამატება',
       saveBtn: 'ცვლილებების შენახვა',
       createBtn: 'ახალი თამაშის გამოქვეყნება',
       defaultTitle: 'ლისის საღამოს პადელის თამაში',
@@ -341,6 +350,8 @@ export const translations = {
       districtTbilisi: 'Tbilisi',
       refundGuarantee: 'Included:',
       refundSub: '4 Rackets and 3 Balls.',
+      viewImages: 'Images',
+      openMaps: 'Map',
     },
 
     // Match Details Modal
@@ -368,6 +379,8 @@ export const translations = {
       closeBtn: 'Close',
       shareBtn: 'Share',
       shareSuccess: 'Match link copied to clipboard!',
+      viewImages: 'View Images',
+      openInGoogleMaps: 'Open in Google Maps',
     },
 
     // Auth Modal
@@ -459,6 +472,11 @@ export const translations = {
       descriptionEn: 'Description (English)',
       bannerImageUrl: 'Banner Image Link (URL)',
       bannerImageHelp: 'Enter image URL for the match card cover banner',
+      googleMapsUrl: 'Google Maps Link',
+      googleMapsHelp: 'Paste location Google Maps URL',
+      galleryImages: 'Gallery Additional Photos',
+      galleryImagesHelp: 'Add extra photo links for court gallery',
+      addGalleryPhoto: 'Add Photo',
       saveBtn: 'Save Match Changes',
       createBtn: 'Publish New Match',
       defaultTitle: 'Lisi Evening Padel Match',

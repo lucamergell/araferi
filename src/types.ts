@@ -84,6 +84,8 @@ export interface Match {
   createdByAdminId: string;
   createdAt: string;
   imageUrl?: string;
+  googleMapsUrl?: string;
+  galleryImageUrls?: string[];
   score?: string;
   team1UserIds?: string[];
   team2UserIds?: string[];

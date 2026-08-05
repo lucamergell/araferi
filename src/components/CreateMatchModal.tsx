@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Match, SkillLevel } from '../types';
-import { X, Calendar, Clock, MapPin, Plus, DollarSign, Globe, Image as ImageIcon, Link as LinkIcon, Sparkles } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Plus, DollarSign, Globe, Image as ImageIcon, Link as LinkIcon, Sparkles, Navigation, Trash2 } from 'lucide-react';
 import { formatDateDDMMYYYY, getLocalizedDayOfWeek } from '../utils/formatters';
 
 const PRESET_BANNERS = [
@@ -41,6 +41,19 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
   const [imageUrl, setImageUrl] = useState(
     matchToEdit?.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'
   );
+  const [googleMapsUrl, setGoogleMapsUrl] = useState(matchToEdit?.googleMapsUrl || '');
+  const [galleryImageUrls, setGalleryImageUrls] = useState<string[]>(matchToEdit?.galleryImageUrls || []);
+  const [newGalleryInput, setNewGalleryInput] = useState('');
+
+  const handleAddGalleryImage = () => {
+    if (!newGalleryInput.trim()) return;
+    setGalleryImageUrls(prev => [...prev, newGalleryInput.trim()]);
+    setNewGalleryInput('');
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryImageUrls(prev => prev.filter((_, idx) => idx !== index));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +84,8 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
       descriptionKa: '',
       descriptionEn: '',
       imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800',
+      googleMapsUrl: googleMapsUrl.trim(),
+      galleryImageUrls: galleryImageUrls.filter(u => u && u.trim() !== ''),
     };
 
     if (matchToEdit) {
@@ -198,6 +213,35 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
                 className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
               />
             </div>
+          </div>
+
+          {/* Google Maps Link Field */}
+          <div>
+            <label className="block text-purple-300/80 font-bold mb-1 flex items-center gap-1.5">
+              <Navigation className="w-3.5 h-3.5 text-amber-400" />
+              <span>{t.createMatchModal.googleMapsUrl}</span>
+            </label>
+            <div className="relative">
+              <input
+                type="url"
+                value={googleMapsUrl}
+                onChange={e => setGoogleMapsUrl(e.target.value)}
+                placeholder="https://maps.google.com/?q=..."
+                className="w-full pl-3 pr-20 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white text-xs focus:outline-none focus:border-purple-500"
+              />
+              {googleMapsUrl && (
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1 transition-all"
+                >
+                  <Navigation className="w-3 h-3" />
+                  <span>Test Link</span>
+                </a>
+              )}
+            </div>
+            <p className="text-[10px] text-purple-300/60 mt-1">{t.createMatchModal.googleMapsHelp}</p>
           </div>
 
           {/* Date Selection with dd.mm.yyyy preview */}
@@ -378,6 +422,77 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
                     Live Card Banner Preview
                   </span>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Additional Gallery Photos Section */}
+          <div className="p-3.5 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-amber-400" />
+                <span>{t.createMatchModal.galleryImages}</span>
+              </div>
+              <span className="text-[10px] text-purple-300/60">
+                {galleryImageUrls.length} photo(s)
+              </span>
+            </div>
+
+            <p className="text-[10px] text-purple-300/60">{t.createMatchModal.galleryImagesHelp}</p>
+
+            {/* Input to add new photo */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
+                </div>
+                <input
+                  type="url"
+                  value={newGalleryInput}
+                  onChange={e => setNewGalleryInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddGalleryImage();
+                    }
+                  }}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  className="w-full pl-9 pr-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white text-xs focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddGalleryImage}
+                className="px-3 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs flex items-center gap-1 transition-all shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t.createMatchModal.addGalleryPhoto}</span>
+              </button>
+            </div>
+
+            {/* Current Gallery List Thumbnails */}
+            {galleryImageUrls.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2">
+                {galleryImageUrls.map((url, idx) => (
+                  <div key={idx} className="relative group h-20 rounded-xl overflow-hidden border border-purple-800/40 bg-black/40">
+                    <img
+                      src={url}
+                      alt={`Gallery thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGalleryImage(idx)}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-black/70 hover:bg-red-600 text-white transition-all cursor-pointer shadow-md"
+                      title="Remove Photo"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
