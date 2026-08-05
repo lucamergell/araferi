@@ -5,7 +5,7 @@ import { SkillLevel, PlayingPosition } from '../types';
 import { Sparkles, Trophy, PhoneCall } from 'lucide-react';
 
 export const OnboardingProfileModal: React.FC = () => {
-  const { currentUser, updatePlayerProfile, setCurrentView, showNotification } = useApp();
+  const { currentUser, isAuthLoading, isUsersLoaded, updatePlayerProfile, setCurrentView, showNotification } = useApp();
   const { t } = useLanguage();
 
   const [hasCompletedLocal, setHasCompletedLocal] = useState<boolean>(() => {
@@ -32,10 +32,15 @@ export const OnboardingProfileModal: React.FC = () => {
     }
   }, [currentUser?.id, currentUser?.phoneNumber]);
 
-  const hasPhone = Boolean(currentUser?.phoneNumber && currentUser.phoneNumber.trim() !== '');
+  // Do not show modal while authentication or Firestore users snapshot is loading
+  if (isAuthLoading || !isUsersLoaded || !currentUser) {
+    return null;
+  }
 
-  // If user is logged in, but has no phone number, open popup!
-  if (!currentUser || (currentUser.isProfileComplete && hasPhone) || (hasCompletedLocal && hasPhone)) {
+  const hasPhone = Boolean(currentUser.phoneNumber && currentUser.phoneNumber.trim() !== '');
+
+  // If user profile is complete and has a valid phone number, do not open popup
+  if ((currentUser.isProfileComplete && hasPhone) || (hasCompletedLocal && hasPhone)) {
     return null;
   }
 

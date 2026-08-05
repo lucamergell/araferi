@@ -11,6 +11,8 @@ export type AppView = 'landing' | 'discovery' | 'profile' | 'rankings' | 'admin'
 interface AppContextType {
   currentUser: User | null;
   firebaseUser: FirebaseUser | null;
+  isAuthLoading: boolean;
+  isUsersLoaded: boolean;
   users: User[];
   matches: Match[];
   payments: PaymentRecord[];
@@ -71,6 +73,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+  const [isUsersLoaded, setIsUsersLoaded] = useState<boolean>(false);
 
   const getInitialView = (): AppView => {
     if (typeof window === 'undefined') return 'landing';
@@ -233,6 +237,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else {
         setCurrentUserId(null);
       }
+      setIsAuthLoading(false);
     });
 
     return () => unsubscribe();
@@ -248,9 +253,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           loadedUsers.push(docSnap.data() as User);
         });
         setUsers(loadedUsers);
+        setIsUsersLoaded(true);
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'users');
+        setIsUsersLoaded(true);
       }
     );
     return () => unsub();
@@ -1172,6 +1179,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         currentUser,
         firebaseUser,
+        isAuthLoading,
+        isUsersLoaded,
         users,
         matches,
         payments,
