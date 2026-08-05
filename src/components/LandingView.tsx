@@ -25,6 +25,12 @@ export const LandingView: React.FC = () => {
                 {t.landing.titleLine2}
               </span>
             </h1>
+
+            {/* Info Disclaimer Subtext */}
+            <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/30 border border-purple-800/25 text-purple-300/80 text-xs font-normal tracking-wide backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400/60 shrink-0"></span>
+              <span>Padely აკავშირებს მოთამაშეებს და არ არის დაკავშირებული არცერთ კლუბთან</span>
+            </div>
           </div>
         </div>
       </section>
