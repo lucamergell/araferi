@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info, UserPlus, Trash2, Bot } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info, UserPlus, Trash2, Bot, Power } from 'lucide-react';
 import { formatDisplayName, getLocalizedMatch } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
 
@@ -19,7 +19,9 @@ export const MatchDetailModal: React.FC = () => {
     fillMatchWithPlaceholders,
     adminAssignPlayerToMatch,
     removePlayerFromMatch,
-    clearPlaceholdersFromMatch
+    clearPlaceholdersFromMatch,
+    activateMatch,
+    deactivateMatch
   } = useApp();
 
   const [selectedAssignUserId, setSelectedAssignUserId] = useState<string>('');
@@ -175,6 +177,26 @@ export const MatchDetailModal: React.FC = () => {
                       >
                         <Trash2 className="w-3.5 h-3.5 text-red-400" />
                         <span>Clear Placeholders</span>
+                      </button>
+                    )}
+
+                    {match.status === 'Cancelled' ? (
+                      <button
+                        onClick={() => activateMatch(match.id)}
+                        className="px-2.5 py-1 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/50 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow"
+                        title="Activate this match"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Activate Match</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => deactivateMatch(match.id)}
+                        className="px-2.5 py-1 rounded-xl bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800/40 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                        title="Deactivate this match"
+                      >
+                        <Power className="w-3.5 h-3.5 text-red-400" />
+                        <span>Deactivate Match</span>
                       </button>
                     )}
                   </>

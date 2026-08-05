@@ -6,7 +6,7 @@ import { ConfirmMatchResultModal } from './ConfirmMatchResultModal';
 import { Match, User } from '../types';
 import { 
   Shield, Plus, DollarSign, Calendar, Users, TrendingUp, Edit, Trash2, 
-  Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw
+  Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw, Power
 } from 'lucide-react';
 import { formatDateDDMMYYYY } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
@@ -18,6 +18,8 @@ export const AdminDashboardView: React.FC = () => {
     users, 
     payments, 
     cancelMatch, 
+    activateMatch,
+    deactivateMatch,
     openUserProfile,
     openMatchDetails,
     adminAssignPlayerToMatch,
@@ -544,14 +546,23 @@ export const AdminDashboardView: React.FC = () => {
                             <Edit className="w-3.5 h-3.5" />
                           </button>
 
-                          {m.status !== 'Cancelled' && (
+                          {m.status === 'Cancelled' ? (
                             <button
-                              onClick={() => cancelMatch(m.id)}
-                              title="Cancel Match & Auto Refund Players"
-                              className="px-2 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/60 text-red-300 border border-red-800/30 text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                              onClick={() => activateMatch(m.id)}
+                              title="Activate Match (Publish to Players)"
+                              className="px-2 py-1 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/50 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all shadow"
                             >
-                              <XCircle className="w-3 h-3" />
-                              <span>Cancel</span>
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>Activate</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => deactivateMatch(m.id)}
+                              title="Deactivate Match"
+                              className="px-2 py-1 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800/40 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all"
+                            >
+                              <Power className="w-3 h-3 text-red-400" />
+                              <span>Deactivate</span>
                             </button>
                           )}
                         </div>
@@ -561,14 +572,34 @@ export const AdminDashboardView: React.FC = () => {
                       {/* Expanded Match Roster Drawer */}
                       {isExpanded && (
                         <div className="p-4 bg-purple-950/30 border-t border-purple-900/40 space-y-3 animate-fadeIn">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
                             <span className="font-bold text-amber-300 text-xs flex items-center gap-1.5">
                               <Users className="w-3.5 h-3.5 text-amber-400" />
                               <span>Player Roster Management for "{m.title}"</span>
                             </span>
-                            <span className="text-[10px] text-purple-300">
-                              {m.joinedUserIds.length}/{m.totalSpots} spots filled
-                            </span>
+                            
+                            <div className="flex items-center gap-2">
+                              {m.status === 'Cancelled' ? (
+                                <button
+                                  onClick={() => activateMatch(m.id)}
+                                  className="px-2.5 py-1 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/50 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                  <span>Activate Match</span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => deactivateMatch(m.id)}
+                                  className="px-2.5 py-1 rounded-xl bg-red-950 hover:bg-red-900 text-red-300 border border-red-800/40 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Power className="w-3.5 h-3.5 text-red-400" />
+                                  <span>Deactivate Match</span>
+                                </button>
+                              )}
+                              <span className="text-[10px] text-purple-300">
+                                {m.joinedUserIds.length}/{m.totalSpots} spots filled
+                              </span>
+                            </div>
                           </div>
 
                           {/* Roster List */}

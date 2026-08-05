@@ -41,6 +41,8 @@ interface AppContextType {
   createMatch: (newMatch: Omit<Match, 'id' | 'createdAt' | 'joinedUserIds' | 'status' | 'createdByAdminId'>) => void;
   updateMatch: (matchId: string, updatedFields: Partial<Match>) => void;
   cancelMatch: (matchId: string) => void;
+  activateMatch: (matchId: string) => Promise<void>;
+  deactivateMatch: (matchId: string) => Promise<void>;
   confirmMatchResult: (matchId: string, team1UserIds: string[], team2UserIds: string[], winningTeam: 1 | 2, score: string) => Promise<void>;
   removeMatchResult: (matchId: string) => Promise<void>;
   resetAllRankings: () => Promise<void>;
@@ -591,6 +593,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Match "${matchToCancel.title}" cancelled. ${refundedCount > 0 ? `${refundedCount} players automatically refunded in full!` : ''}`,
       'info'
     );
+  };
+
+  const activateMatch = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can activate matches.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    const newStatus = targetMatch.joinedUserIds.length >= targetMatch.totalSpots ? 'Fully Booked' : 'Open';
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), { status: newStatus });
+      showNotification(`Activated match "${targetMatch.title}"!`, 'success');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
+  };
+
+  const deactivateMatch = async (matchId: string) => {
+    if (currentUser?.role !== 'admin') {
+      showNotification('Only admins can deactivate matches.', 'error');
+      return;
+    }
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), { status: 'Cancelled' });
+      showNotification(`Deactivated match "${targetMatch.title}".`, 'info');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
   };
 
   // Placeholder User Generation & Management
@@ -1163,6 +1199,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createMatch,
         updateMatch,
         cancelMatch,
+        activateMatch,
+        deactivateMatch,
         confirmMatchResult,
         removeMatchResult,
         resetAllRankings,
