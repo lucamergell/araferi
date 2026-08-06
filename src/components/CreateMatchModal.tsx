@@ -1,101 +1,159 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Match, SkillLevel } from '../types';
-import { X, Calendar, Clock, MapPin, Plus, DollarSign, Globe, Image as ImageIcon, Link as LinkIcon, Sparkles, Navigation, Trash2, Building } from 'lucide-react';
+import { Match, SkillLevel, MatchCategory, MatchType } from '../types';
+import { X, Calendar, Clock, MapPin, Building, Phone, ShieldCheck, CheckCircle2, User as UserIcon, Award } from 'lucide-react';
 import { formatDateDDMMYYYY, getLocalizedDayOfWeek } from '../utils/formatters';
-
-const PRESET_BANNERS = [
-  { name: 'Lisi Court', url: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Sunset Match', url: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Indoor Arena', url: 'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Pro Game', url: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=800' },
-];
 
 interface CreateMatchModalProps {
   onClose: () => void;
   matchToEdit?: Match;
   initialSelectedCourtId?: string;
+  defaultCategory?: MatchCategory;
 }
 
-export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, matchToEdit, initialSelectedCourtId }) => {
-  const { createMatch, updateMatch, courts } = useApp();
-  const { t } = useLanguage();
+export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
+  onClose,
+  matchToEdit,
+  initialSelectedCourtId,
+  defaultCategory,
+}) => {
+  const { createMatch, updateMatch, courts, currentUser, firebaseUser } = useApp();
+  const { language, t } = useLanguage();
 
-  const [selectedCourtId, setSelectedCourtId] = useState<string>(initialSelectedCourtId || '');
+  const userEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
+  const isAdmin = userEmail === 'luca.mergell@gmail.com' || currentUser?.role === 'admin';
 
-  const [titleKa, setTitleKa] = useState(matchToEdit?.titleKa || matchToEdit?.title || t.createMatchModal.defaultTitleKa);
-  const [titleEn, setTitleEn] = useState(matchToEdit?.titleEn || matchToEdit?.title || t.createMatchModal.defaultTitleEn);
-
-  const [locationNameKa, setLocationNameKa] = useState(matchToEdit?.locationNameKa || matchToEdit?.locationName || t.createMatchModal.defaultClubKa);
-  const [locationNameEn, setLocationNameEn] = useState(matchToEdit?.locationNameEn || matchToEdit?.locationName || t.createMatchModal.defaultClubEn);
-
-  const [address, setAddress] = useState(matchToEdit?.address || t.createMatchModal.defaultAddress);
-  const [district, setDistrict] = useState(matchToEdit?.district || 'Lisi');
-  
-  const [date, setDate] = useState(matchToEdit?.date || new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState(matchToEdit?.startTime || '18:00');
-  const [durationMinutes, setDurationMinutes] = useState(matchToEdit?.durationMinutes || 90);
-  const [totalSpots, setTotalSpots] = useState(matchToEdit?.totalSpots || 4);
-  const [skillLevelRequired, setSkillLevelRequired] = useState<SkillLevel>(matchToEdit?.skillLevelRequired || 'Intermediate');
-  const [courtCostGel, setCourtCostGel] = useState(matchToEdit?.courtCostGel || 80);
-  const [pricePerPlayerGel, setPricePerPlayerGel] = useState(matchToEdit?.pricePerPlayerGel || 25);
-  
-  const [imageUrl, setImageUrl] = useState(
-    matchToEdit?.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'
+  // Category: Official or Player
+  const [category, setCategory] = useState<MatchCategory>(
+    matchToEdit?.category || defaultCategory || (isAdmin ? 'official' : 'player')
   );
-  const [googleMapsUrl, setGoogleMapsUrl] = useState(matchToEdit?.googleMapsUrl || '');
-  const [galleryImageUrls, setGalleryImageUrls] = useState<string[]>(matchToEdit?.galleryImageUrls || []);
-  const [newGalleryInput, setNewGalleryInput] = useState('');
+
+  // Premade Court Selection
+  const [selectedCourtId, setSelectedCourtId] = useState<string>(
+    matchToEdit?.courtId || initialSelectedCourtId || (courts.length > 0 ? courts[0].id : '')
+  );
+
+  const initialCourt = courts.find(c => c.id === selectedCourtId) || courts[0];
+
+  const [date, setDate] = useState(matchToEdit?.date || new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState(matchToEdit?.startTime || '18:30');
+  const [durationMinutes, setDurationMinutes] = useState<number>(matchToEdit?.durationMinutes || 90);
+  const [totalSpots, setTotalSpots] = useState<number>(matchToEdit?.totalSpots || 4);
+  const [skillLevelRequired, setSkillLevelRequired] = useState<SkillLevel>(
+    matchToEdit?.skillLevelRequired || 'Intermediate'
+  );
+  const [matchType, setMatchType] = useState<MatchType>(matchToEdit?.matchType || 'Friendly');
+  const [pricePerPlayerGel, setPricePerPlayerGel] = useState<number>(
+    matchToEdit?.pricePerPlayerGel || initialCourt?.defaultPricePerPlayerGel || 15
+  );
+
+  // Phone number state and disclosure agreement
+  const [userPhone, setUserPhone] = useState<string>(
+    currentUser?.phoneNumber || matchToEdit?.creatorPhone || ''
+  );
+  const [allowPhoneOnCard, setAllowPhoneOnCard] = useState<boolean>(
+    matchToEdit ? matchToEdit.allowPhoneOnCard !== false : false
+  );
+
+  // Form errors state
+  const [formErrors, setFormErrors] = useState<{
+    court?: string;
+    date?: string;
+    time?: string;
+    price?: string;
+    phone?: string;
+    general?: string;
+  }>({});
 
   const handleSelectCourt = (courtId: string) => {
     setSelectedCourtId(courtId);
+    setFormErrors(prev => ({ ...prev, court: undefined, general: undefined }));
     const selected = courts.find(c => c.id === courtId);
-    if (!selected) return;
-
-    const courtNameKa = selected.nameKa || selected.name;
-    const courtNameEn = selected.nameEn || selected.name;
-
-    setLocationNameKa(courtNameKa);
-    setLocationNameEn(courtNameEn);
-    setTitleKa(`${courtNameKa} - თამაში`);
-    setTitleEn(`${courtNameEn} Match`);
-    setAddress(selected.addressKa || selected.address);
-    setDistrict(selected.district || 'Lisi');
-    if (selected.googleMapsUrl) setGoogleMapsUrl(selected.googleMapsUrl);
-    if (selected.imageUrl) setImageUrl(selected.imageUrl);
-    if (selected.galleryImageUrls && selected.galleryImageUrls.length > 0) {
-      setGalleryImageUrls(selected.galleryImageUrls);
+    if (selected && selected.defaultPricePerPlayerGel) {
+      setPricePerPlayerGel(selected.defaultPricePerPlayerGel);
     }
-    if (selected.defaultCourtCostGel) setCourtCostGel(selected.defaultCourtCostGel);
-    if (selected.defaultPricePerPlayerGel) setPricePerPlayerGel(selected.defaultPricePerPlayerGel);
-  };
-
-  const handleAddGalleryImage = () => {
-    if (!newGalleryInput.trim()) return;
-    setGalleryImageUrls(prev => [...prev, newGalleryInput.trim()]);
-    setNewGalleryInput('');
-  };
-
-  const handleRemoveGalleryImage = (index: number) => {
-    setGalleryImageUrls(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const errors: { court?: string; date?: string; time?: string; price?: string; phone?: string; general?: string } = {};
+
+    if (!selectedCourtId) {
+      errors.court = language === 'ka' ? 'გთხოვთ აირჩიოთ კორტი!' : 'Please select a court!';
+    } else if (!courts.some(c => c.id === selectedCourtId)) {
+      errors.court = language === 'ka' ? 'არჩეული კორტი მიუწვდომელია!' : 'Selected court is not available!';
+    }
+
+    if (!date) {
+      errors.date = language === 'ka' ? 'გთხოვთ აირჩიოთ თარიღი!' : 'Please select a date!';
+    } else {
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (date < todayStr) {
+        errors.date = language === 'ka' ? 'თარიღი არ შეიძლება იყოს წარსულში!' : 'Date cannot be in the past!';
+      }
+    }
+
+    if (!startTime) {
+      errors.time = language === 'ka' ? 'გთხოვთ მიუთითოთ დაწყების დრო!' : 'Please select start time!';
+    }
+
+    if (pricePerPlayerGel === undefined || pricePerPlayerGel === null || isNaN(pricePerPlayerGel) || Number(pricePerPlayerGel) < 0) {
+      errors.price = language === 'ka' ? 'გთხოვთ მიუთითოთ სწორი ფასი (0 ან მეტი GEL)!' : 'Please enter a valid price (0 or more GEL)!';
+    }
+
+    if (category === 'player') {
+      const trimmedPhone = userPhone.trim();
+      if (!trimmedPhone) {
+        errors.phone = language === 'ka' ? 'ტელეფონის ნომერი აუცილებელია!' : 'Phone number is required!';
+      } else {
+        const digits = trimmedPhone.replace(/\D/g, '');
+        if (digits.length < 8) {
+          errors.phone = language === 'ka' ? 'გთხოვთ შეიყვანოთ სწორი ტელეფონის ნომერი (მინიმუმ 8 ციფრი)!' : 'Please enter a valid phone number (at least 8 digits)!';
+        }
+      }
+
+      if (!allowPhoneOnCard) {
+        errors.phone = language === 'ka' 
+          ? 'გთხოვთ დაეთანხმოთ პირობას ტელეფონის ნომრის გამოჩენის შესახებ!' 
+          : 'You must check the agreement to display your phone number on Padely.ge!';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      errors.general = language === 'ka' 
+        ? 'გთხოვთ შეავსოთ ყველა აუცილებელი ველები სწორად!' 
+        : 'Please fill in all required fields correctly!';
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
+
+    const court = courts.find(c => c.id === selectedCourtId)!;
+
     const dayKa = getLocalizedDayOfWeek(date, 'ka');
     const dayEn = getLocalizedDayOfWeek(date, 'en');
 
-    const matchPayload = {
-      title: titleKa || titleEn,
-      titleKa: titleKa || titleEn,
-      titleEn: titleEn || titleKa,
-      locationName: locationNameKa || locationNameEn,
-      locationNameKa: locationNameKa || locationNameEn,
-      locationNameEn: locationNameEn || locationNameKa,
-      address,
-      district,
+    const matchNameKa = `${court.nameKa || court.name} - ${matchType === 'Friendly' ? 'ამხანაგური' : matchType === 'Competitive' ? 'სარეიტინგო' : 'ვარჯიში'}`;
+    const matchNameEn = `${court.nameEn || court.name} - ${matchType}`;
+
+    const matchPayload: Partial<Match> = {
+      category,
+      matchType,
+      courtId: court.id,
+      title: matchNameEn,
+      titleKa: matchNameKa,
+      titleEn: matchNameEn,
+      locationName: court.name,
+      locationNameKa: court.nameKa || court.name,
+      locationNameEn: court.nameEn || court.name,
+      address: court.address,
+      addressKa: court.addressKa || court.address,
+      addressEn: court.addressEn || court.address,
+      district: court.district || 'Tbilisi',
       date,
       dayOfWeek: dayEn,
       dayOfWeekKa: dayKa,
@@ -104,14 +162,16 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
       durationMinutes,
       totalSpots,
       skillLevelRequired,
-      courtCostGel,
+      courtCostGel: court.defaultCourtCostGel || (pricePerPlayerGel * totalSpots),
       pricePerPlayerGel,
-      description: '',
-      descriptionKa: '',
-      descriptionEn: '',
-      imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800',
-      googleMapsUrl: googleMapsUrl.trim(),
-      galleryImageUrls: galleryImageUrls.filter(u => u && u.trim() !== ''),
+      description: category === 'official' ? 'Official Padely Event' : `Player created match by ${currentUser?.name || 'Host'}`,
+      descriptionKa: category === 'official' ? 'Padely-ს ოფიციალური თამაში' : `მოთამაშე ${currentUser?.name || 'ორგანიზატორი'}-ს მიერ შექმნილი მატჩი`,
+      descriptionEn: category === 'official' ? 'Official Padely Event' : `Player created match by ${currentUser?.name || 'Host'}`,
+      imageUrl: court.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800',
+      googleMapsUrl: court.googleMapsUrl || '',
+      galleryImageUrls: court.galleryImageUrls || [],
+      allowPhoneOnCard: category === 'player' ? allowPhoneOnCard : false,
+      creatorPhone: userPhone.trim(),
     };
 
     if (matchToEdit) {
@@ -123,460 +183,366 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
     onClose();
   };
 
-  const calculatedRevenue = totalSpots * pricePerPlayerGel;
-  const calculatedMargin = calculatedRevenue - courtCostGel;
-  const formattedDisplayDate = formatDateDDMMYYYY(date);
-  const computedDayKa = getLocalizedDayOfWeek(date, 'ka');
-  const computedDayEn = getLocalizedDayOfWeek(date, 'en');
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-800/50 rounded-3xl shadow-2xl text-white my-auto p-5 sm:p-6 space-y-5 custom-scrollbar">
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-[#0f0921] border border-purple-800/50 rounded-3xl shadow-2xl text-white my-auto p-5 sm:p-6 pb-12 sm:pb-8 space-y-5 custom-scrollbar">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
-          <h3 className="text-lg font-black text-white flex items-center gap-2">
-            <span>{matchToEdit ? t.createMatchModal.titleEdit : t.createMatchModal.titleCreate}</span>
-            <span className="text-xs font-normal text-purple-300/60 bg-purple-950/60 border border-purple-800/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Globe className="w-3 h-3 text-purple-400" />
-              <span>KA & EN</span>
-            </span>
-          </h3>
-          <button onClick={onClose} className="p-2 rounded-full bg-purple-950/50 hover:bg-purple-900/60 text-purple-300">
+        <div className="flex items-center justify-between border-b border-purple-900/40 pb-4">
+          <div>
+            <h3 className="text-xl font-black text-white flex items-center gap-2">
+              <span>{matchToEdit ? t.createMatchModal.titleEdit : t.createMatchModal.titleCreate}</span>
+            </h3>
+            <p className="text-xs text-purple-300/70 mt-0.5">
+              {category === 'official' 
+                ? (language === 'ka' ? 'ოფიციალური ორგანიზებული ღონისძიების შექმნა' : 'Create an official platform-organized match')
+                : (language === 'ka' ? 'შექმენი შენი მატჩი და მოიწვიე სხვა მოთამაშეები' : 'Create your match & invite other padel players')}
+            </p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 rounded-full bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 transition-colors cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           
-          {/* Quick Select Pre-Made Stadium / Court */}
-          <div className="p-3.5 bg-gradient-to-r from-amber-950/40 via-purple-950/40 to-amber-950/40 rounded-2xl border border-amber-500/40 space-y-2.5 shadow-lg">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-black text-amber-300 flex items-center gap-1.5">
-                <Building className="w-4 h-4 text-amber-400" />
-                <span>აირჩიე სტადიონი / Pre-Made Stadium</span>
-              </label>
-              <span className="text-[10px] text-amber-300/80 font-semibold bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-600/30">
-                1-Click Auto-Fill
-              </span>
+          {/* General Error Banner */}
+          {formErrors.general && (
+            <div className="p-3.5 rounded-2xl bg-red-950/90 border border-red-500/60 text-red-200 text-xs font-bold flex items-center gap-2 shadow-xl">
+              <span className="text-base">⚠️</span>
+              <span>{formErrors.general}</span>
             </div>
+          )}
+
+          {/* Admin Category Switcher if Admin */}
+          {isAdmin && (
+            <div className="p-3 bg-amber-950/30 border border-amber-500/40 rounded-2xl space-y-2">
+              <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-amber-400" />
+                <span>{language === 'ka' ? 'მატჩის კატეგორია (ადმინი)' : 'Match Category (Admin)'}</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCategory('official')}
+                  className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    category === 'official'
+                      ? 'bg-amber-500 text-black shadow-lg shadow-amber-900/40'
+                      : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900/60'
+                  }`}
+                >
+                  <Award className="w-4 h-4" />
+                  <span>Official Match</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCategory('player')}
+                  className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    category === 'player'
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40'
+                      : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900/60'
+                  }`}
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>Player Match</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 1. COURT SELECTION SYSTEM (Strict Premade Courts) */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-purple-200 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Building className="w-4 h-4 text-purple-400" />
+                <span>{language === 'ka' ? '1. აირჩიეთ პადელის კორტი' : '1. Select a Padel Court'}</span>
+              </span>
+            </label>
 
             {courts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {courts.map((court) => {
-                  const isSelected = selectedCourtId === court.id || locationNameKa === (court.nameKa || court.name);
+                  const isSelected = selectedCourtId === court.id;
                   return (
-                    <button
+                    <div
                       key={court.id}
-                      type="button"
                       onClick={() => handleSelectCourt(court.id)}
-                      className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between h-full ${
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 relative overflow-hidden ${
                         isSelected
-                          ? 'bg-amber-600/30 border-amber-400 text-white shadow-md ring-2 ring-amber-400/50'
-                          : 'bg-purple-950/50 hover:bg-purple-900/60 border-purple-800/40 text-purple-200'
+                          ? 'bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border-purple-400 shadow-xl ring-2 ring-purple-500/50'
+                          : 'bg-purple-950/40 hover:bg-purple-900/40 border-purple-800/30 text-purple-200'
                       }`}
                     >
-                      <div className="font-bold text-[11px] line-clamp-1">{court.nameKa || court.name}</div>
-                      <div className="text-[9px] text-purple-300/80 flex items-center justify-between mt-1 pt-1 border-t border-purple-900/40">
-                        <span>📍 {court.district}</span>
-                        <span className="font-bold text-emerald-400">{court.defaultPricePerPlayerGel || 25}₾</span>
+                      <img 
+                        src={court.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'} 
+                        alt={court.name}
+                        className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/10"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-xs text-white truncate">{court.nameKa || court.name}</div>
+                        <div className="text-[10px] text-purple-300/80 flex items-center gap-1 mt-0.5 truncate">
+                          <MapPin className="w-3 h-3 text-purple-400 shrink-0" />
+                          <span className="truncate">{court.district}, {court.address}</span>
+                        </div>
                       </div>
-                    </button>
+                      {isSelected && (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      )}
+                    </div>
                   );
                 })}
               </div>
             ) : (
-              <p className="text-[11px] text-purple-300/70">No pre-made courts found in system.</p>
+              <p className="text-xs text-purple-300/70 p-3 bg-purple-950/50 rounded-xl">No courts configured in admin panel.</p>
+            )}
+            {formErrors.court && (
+              <p className="text-red-400 text-[11px] font-bold mt-1 flex items-center gap-1">
+                <span>⚠️</span> {formErrors.court}
+              </p>
             )}
           </div>
 
-          {/* Match Title (Bilingual) */}
-          <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
-            <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
-              <Globe className="w-3.5 h-3.5 text-purple-400" />
-              <span>{t.createMatchModal.matchTitle}</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇪 {t.createMatchModal.matchTitleKa}</label>
-                <input
-                  type="text"
-                  required
-                  value={titleKa}
-                  onChange={e => setTitleKa(e.target.value)}
-                  placeholder="მაგ: ლისის საღამოს პადელის თამაში"
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇧 {t.createMatchModal.matchTitleEn}</label>
-                <input
-                  type="text"
-                  required
-                  value={titleEn}
-                  onChange={e => setTitleEn(e.target.value)}
-                  placeholder="e.g. Lisi Evening Padel Match"
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Location Name (Bilingual) */}
-          <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
-            <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-purple-400" />
-              <span>{t.createMatchModal.clubLocation}</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇪 {t.createMatchModal.clubLocationKa}</label>
-                <input
-                  type="text"
-                  required
-                  value={locationNameKa}
-                  onChange={e => setLocationNameKa(e.target.value)}
-                  placeholder="მაგ: ლისი პადელ კლუბი"
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">🇬🇧 {t.createMatchModal.clubLocationEn}</label>
-                <input
-                  type="text"
-                  required
-                  value={locationNameEn}
-                  onChange={e => setLocationNameEn(e.target.value)}
-                  placeholder="e.g. Lisi Padel Club"
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* 2. DATE & START TIME */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.district}</label>
-              <select
-                value={district}
-                onChange={e => setDistrict(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              >
-                <option value="Lisi">Lisi Lake (ლისი)</option>
-                <option value="Saburtalo">Saburtalo (საბურთალო)</option>
-                <option value="Vake">Vake (ვაკე)</option>
-                <option value="Dighomi">Dighomi (დიღომი)</option>
-                <option value="Mtatsminda">Mtatsminda (მთაწმინდა)</option>
-                <option value="Marjanishvili">Marjanishvili (მარჯანიშვილი)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.address}</label>
+              <label className="block text-purple-300/90 font-bold mb-1 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                <span>{language === 'ka' ? '2. აირჩიეთ თარიღი' : '2. Select Date'}</span>
+              </label>
               <input
-                type="text"
+                type="date"
                 required
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                value={date}
+                onChange={e => {
+                  setDate(e.target.value);
+                  if (formErrors.date) setFormErrors(prev => ({ ...prev, date: undefined, general: undefined }));
+                }}
+                className={`w-full px-3 py-2.5 bg-purple-950/60 border rounded-xl text-white font-semibold focus:outline-none ${
+                  formErrors.date ? 'border-red-500' : 'border-purple-800/40 focus:border-purple-500'
+                }`}
               />
-            </div>
-          </div>
-
-          {/* Google Maps Link Field */}
-          <div>
-            <label className="block text-purple-300/80 font-bold mb-1 flex items-center gap-1.5">
-              <Navigation className="w-3.5 h-3.5 text-amber-400" />
-              <span>{t.createMatchModal.googleMapsUrl}</span>
-            </label>
-            <div className="relative">
-              <input
-                type="url"
-                value={googleMapsUrl}
-                onChange={e => setGoogleMapsUrl(e.target.value)}
-                placeholder="https://maps.google.com/?q=..."
-                className="w-full pl-3 pr-20 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white text-xs focus:outline-none focus:border-purple-500"
-              />
-              {googleMapsUrl && (
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1 transition-all"
-                >
-                  <Navigation className="w-3 h-3" />
-                  <span>Test Link</span>
-                </a>
+              {formErrors.date && (
+                <p className="text-red-400 text-[11px] font-bold mt-1 flex items-center gap-1">
+                  <span>⚠️</span> {formErrors.date}
+                </p>
               )}
             </div>
-            <p className="text-[10px] text-purple-300/60 mt-1">{t.createMatchModal.googleMapsHelp}</p>
-          </div>
 
-          {/* Date Selection with dd.mm.yyyy preview */}
-          <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="block text-purple-300/80 font-bold flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                <span>{t.createMatchModal.date}</span>
+            <div>
+              <label className="block text-purple-300/90 font-bold mb-1 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-purple-400" />
+                <span>{language === 'ka' ? '3. დაწყების დრო' : '3. Select Start Time'}</span>
               </label>
-              <span className="text-xs font-black text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
-                {formattedDisplayDate} ({computedDayKa} / {computedDayEn})
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div>
-                <input
-                  type="date"
-                  required
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">{t.createMatchModal.startTime}</label>
-                <input
-                  type="time"
-                  required
-                  value={startTime}
-                  onChange={e => setStartTime(e.target.value)}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] text-purple-300/70 font-semibold mb-1">{t.createMatchModal.durationMins}</label>
-                <input
-                  type="number"
-                  required
-                  value={durationMinutes}
-                  onChange={e => setDurationMinutes(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Pricing & Economics */}
-          <div className="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-800/30 space-y-3">
-            <div className="text-xs font-bold text-purple-200">{t.createMatchModal.economicsHeader}</div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-purple-300/80 font-semibold mb-1">{t.createMatchModal.courtCost}</label>
-                <input
-                  type="number"
-                  required
-                  value={courtCostGel}
-                  onChange={e => setCourtCostGel(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-purple-300/80 font-semibold mb-1">{t.createMatchModal.pricePerPlayer}</label>
-                <input
-                  type="number"
-                  required
-                  value={pricePerPlayerGel}
-                  onChange={e => setPricePerPlayerGel(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-emerald-400 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-purple-300/80 font-semibold mb-1">{t.createMatchModal.spotsCount}</label>
-                <input
-                  type="number"
-                  required
-                  value={totalSpots}
-                  onChange={e => setTotalSpots(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs pt-1 border-t border-purple-900/30">
-              <span className="text-purple-300/80">
-                {t.createMatchModal.revenue}: <strong className="text-white">{calculatedRevenue} {t.common.gel}</strong> ({totalSpots} x {pricePerPlayerGel})
-              </span>
-              <span className="text-purple-300/80">
-                {t.createMatchModal.profitMargin}: <strong className={calculatedMargin >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>{calculatedMargin} {t.common.gel}</strong>
-              </span>
-            </div>
-          </div>
-
-          {/* Difficulty / Skill Level */}
-          <div>
-            <label className="block text-purple-300/80 font-bold mb-1">{t.createMatchModal.skillRequired}</label>
-            <select
-              value={skillLevelRequired}
-              onChange={e => setSkillLevelRequired(e.target.value as SkillLevel)}
-              className="w-full px-3 py-2 bg-purple-950/50 border border-purple-800/40 rounded-xl text-white focus:outline-none font-semibold"
-            >
-              <option value="Beginner">Beginner / დამწყები</option>
-              <option value="Intermediate">Intermediate / საშუალო</option>
-              <option value="Advanced">Advanced / მაღალი</option>
-              <option value="Expert">Expert / ექსპერტი</option>
-              <option value="Pro">Pro / პრო</option>
-              <option value="Open to All">Open to All / ყველასთვის</option>
-            </select>
-          </div>
-
-          {/* Banner Image URL (Individual Match Banner) */}
-          <div className="p-3.5 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
-                <ImageIcon className="w-4 h-4 text-purple-400" />
-                <span>{t.createMatchModal.bannerImageUrl}</span>
-              </div>
-              <span className="text-[10px] text-purple-300/60 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>Card Cover</span>
-              </span>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
-              </div>
               <input
-                type="url"
+                type="time"
                 required
-                value={imageUrl}
-                onChange={e => setImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/photo-..."
-                className="w-full pl-9 pr-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white text-xs focus:outline-none focus:border-purple-500"
+                value={startTime}
+                onChange={e => {
+                  setStartTime(e.target.value);
+                  if (formErrors.time) setFormErrors(prev => ({ ...prev, time: undefined, general: undefined }));
+                }}
+                className={`w-full px-3 py-2.5 bg-purple-950/60 border rounded-xl text-white font-semibold focus:outline-none ${
+                  formErrors.time ? 'border-red-500' : 'border-purple-800/40 focus:border-purple-500'
+                }`}
               />
+              {formErrors.time && (
+                <p className="text-red-400 text-[11px] font-bold mt-1 flex items-center gap-1">
+                  <span>⚠️</span> {formErrors.time}
+                </p>
+              )}
             </div>
+          </div>
 
-            {/* Quick Presets */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-semibold text-purple-300/70">Quick Presets:</div>
-              <div className="flex flex-wrap gap-1.5">
-                {PRESET_BANNERS.map((preset) => (
+          {/* 3. DURATION & PLAYERS COUNT */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Duration */}
+            <div>
+              <label className="block text-purple-300/90 font-bold mb-1.5">
+                {language === 'ka' ? '4. ხანგრძლივობა' : '4. Select Duration'}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[60, 120].map((mins) => (
                   <button
-                    key={preset.name}
+                    key={mins}
                     type="button"
-                    onClick={() => setImageUrl(preset.url)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
-                      imageUrl === preset.url
-                        ? 'bg-purple-600 border-purple-400 text-white shadow-md'
-                        : 'bg-purple-950/50 border-purple-800/40 text-purple-300 hover:bg-purple-900/60'
+                    onClick={() => setDurationMinutes(mins)}
+                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                      durationMinutes === mins
+                        ? 'bg-purple-600 text-white shadow-md border border-purple-400'
+                        : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900/60 border border-purple-800/30'
                     }`}
                   >
-                    {preset.name}
+                    {mins} {language === 'ka' ? 'წუთი' : 'mins'}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Live Banner Preview */}
-            {imageUrl && (
-              <div className="relative h-24 w-full rounded-xl overflow-hidden border border-purple-800/40 mt-2">
-                <img
-                  src={imageUrl}
-                  alt="Banner preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback on broken image link
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800';
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-2.5">
-                  <span className="text-[10px] font-bold text-white bg-purple-950/80 px-2 py-0.5 rounded-md border border-purple-700/50">
-                    Live Card Banner Preview
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Additional Gallery Photos Section */}
-          <div className="p-3.5 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
-                <ImageIcon className="w-4 h-4 text-amber-400" />
-                <span>{t.createMatchModal.galleryImages}</span>
-              </div>
-              <span className="text-[10px] text-purple-300/60">
-                {galleryImageUrls.length} photo(s)
-              </span>
-            </div>
-
-            <p className="text-[10px] text-purple-300/60">{t.createMatchModal.galleryImagesHelp}</p>
-
-            {/* Input to add new photo */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
-                </div>
-                <input
-                  type="url"
-                  value={newGalleryInput}
-                  onChange={e => setNewGalleryInput(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddGalleryImage();
-                    }
-                  }}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full pl-9 pr-3 py-2 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white text-xs focus:outline-none focus:border-purple-500"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleAddGalleryImage}
-                className="px-3 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs flex items-center gap-1 transition-all shrink-0 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{t.createMatchModal.addGalleryPhoto}</span>
-              </button>
-            </div>
-
-            {/* Current Gallery List Thumbnails */}
-            {galleryImageUrls.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2">
-                {galleryImageUrls.map((url, idx) => (
-                  <div key={idx} className="relative group h-20 rounded-xl overflow-hidden border border-purple-800/40 bg-black/40">
-                    <img
-                      src={url}
-                      alt={`Gallery thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800';
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveGalleryImage(idx)}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-black/70 hover:bg-red-600 text-white transition-all cursor-pointer shadow-md"
-                      title="Remove Photo"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
+            {/* Total Players */}
+            <div>
+              <label className="block text-purple-300/90 font-bold mb-1.5">
+                {language === 'ka' ? '5. მოთამაშეთა რაოდენობა' : '5. Number of Players'}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[2, 4].map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setTotalSpots(count)}
+                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                      totalSpots === count
+                        ? 'bg-purple-600 text-white shadow-md border border-purple-400'
+                        : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900/60 border border-purple-800/30'
+                    }`}
+                  >
+                    {count} {language === 'ka' ? 'მოთამაშე' : 'players'}
+                  </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* 4. SKILL LEVEL & MATCH TYPE */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-purple-300/90 font-bold mb-1">
+                {language === 'ka' ? '6. სირთულის დონე' : '6. Skill Level'}
+              </label>
+              <select
+                value={skillLevelRequired}
+                onChange={e => setSkillLevelRequired(e.target.value as SkillLevel)}
+                className="w-full px-3 py-2.5 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold focus:outline-none focus:border-purple-500"
+              >
+                <option value="Beginner">{language === 'ka' ? 'დამწყები (Beginner)' : 'Beginner'}</option>
+                <option value="Intermediate">{language === 'ka' ? 'საშუალო (Intermediate)' : 'Intermediate'}</option>
+                <option value="Advanced">{language === 'ka' ? 'მაღალი (Advanced)' : 'Advanced'}</option>
+                <option value="Any level">{language === 'ka' ? 'ნებისმიერი დონე (Any level)' : 'Any level'}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-purple-300/90 font-bold mb-1">
+                {language === 'ka' ? '7. მატჩის ტიპი' : '7. Match Type'}
+              </label>
+              <select
+                value={matchType}
+                onChange={e => setMatchType(e.target.value as MatchType)}
+                className="w-full px-3 py-2.5 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold focus:outline-none focus:border-purple-500"
+              >
+                <option value="Friendly">{language === 'ka' ? 'ამხანაგური (Friendly)' : 'Friendly'}</option>
+                <option value="Competitive">{language === 'ka' ? 'სარეიტინგო (Competitive)' : 'Competitive'}</option>
+                <option value="Training">{language === 'ka' ? 'სავარჯიშო (Training)' : 'Training'}</option>
+              </select>
+            </div>
+          </div>
+
+          {/* 5. PRICE PER PLAYER */}
+          <div>
+            <label className="block text-purple-300/90 font-bold mb-1">
+              {language === 'ka' ? '8. ფასი თითო მოთამაშეზე (GEL)' : '8. Price per Player (GEL)'}
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                step="1"
+                required
+                value={pricePerPlayerGel}
+                onChange={e => {
+                  setPricePerPlayerGel(Number(e.target.value));
+                  if (formErrors.price) setFormErrors(prev => ({ ...prev, price: undefined, general: undefined }));
+                }}
+                className={`w-full px-3 py-2.5 bg-purple-950/60 border rounded-xl text-emerald-400 font-extrabold text-sm focus:outline-none ${
+                  formErrors.price ? 'border-red-500' : 'border-purple-800/40 focus:border-purple-500'
+                }`}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 font-black text-purple-300">GEL</div>
+            </div>
+            {formErrors.price && (
+              <p className="text-red-400 text-[11px] font-bold mt-1 flex items-center gap-1">
+                <span>⚠️</span> {formErrors.price}
+              </p>
             )}
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl transition-all cursor-pointer active:scale-95"
-          >
-            {matchToEdit ? t.createMatchModal.saveBtn : t.createMatchModal.createBtn}
-          </button>
+          {/* PHONE DISCLOSURE & CREATOR DISCLOSURE (For Player Matches) */}
+          {category === 'player' && (
+            <div className={`p-4 rounded-2xl bg-purple-950/40 border space-y-3 ${
+              formErrors.phone ? 'border-red-500/60' : 'border-purple-800/40'
+            }`}>
+              <div className="flex items-center gap-2 text-purple-200 font-bold">
+                <Phone className="w-4 h-4 text-purple-400" />
+                <span>{language === 'ka' ? 'ორგანიზატორის საკონტაქტო ნომერი' : 'Host Contact Number'}</span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-purple-300/80 font-medium mb-1">
+                  {language === 'ka' ? 'ტელეფონის ნომერი:' : 'Phone Number:'}
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={userPhone}
+                  onChange={e => {
+                    setUserPhone(e.target.value);
+                    if (formErrors.phone) setFormErrors(prev => ({ ...prev, phone: undefined, general: undefined }));
+                  }}
+                  placeholder="+995 5xx xx xx xx"
+                  className={`w-full px-3 py-2 bg-purple-950/70 border rounded-xl text-white font-semibold focus:outline-none ${
+                    formErrors.phone ? 'border-red-500 focus:border-red-400' : 'border-purple-800/50 focus:border-purple-500'
+                  }`}
+                />
+                {formErrors.phone && (
+                  <p className="text-red-400 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                    <span>⚠️</span> {formErrors.phone}
+                  </p>
+                )}
+              </div>
+
+              <label className={`flex items-start gap-2.5 cursor-pointer pt-2 pb-1 px-2 rounded-xl border transition-colors ${
+                formErrors.phone && !allowPhoneOnCard ? 'bg-red-950/60 border-red-500/80' : 'border-transparent'
+              }`}>
+                <input
+                  type="checkbox"
+                  required
+                  checked={allowPhoneOnCard}
+                  onChange={e => {
+                    setAllowPhoneOnCard(e.target.checked);
+                    if (formErrors.phone) setFormErrors(prev => ({ ...prev, phone: undefined, general: undefined }));
+                  }}
+                  className="mt-0.5 rounded text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+                />
+                <span className="text-[11px] text-purple-200/90 leading-tight">
+                  {language === 'ka'
+                    ? 'ვეთანხმები, რომ ჩემი ტელეფონის ნომერი გამოჩნდება Padely.ge-ზე, რათა სხვა მოთამაშეებმა შეძლონ დაკავშირება კითხვების შემთხვევაში.'
+                    : 'I agree that my phone number will be displayed on Padely.ge so other players can contact me in case of questions.'}
+                </span>
+              </label>
+
+              <div className="text-[11px] text-purple-300/70 bg-purple-900/20 p-2.5 rounded-xl border border-purple-800/20">
+                💡 {language === 'ka' ? 'თქვენ ავტომატურად შეხვალთ ამ მატჩში პირველ მოთამაშედ.' : 'You will automatically join your match as the first player.'}
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className="pt-2 pb-6 sm:pb-2">
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm shadow-xl transition-all cursor-pointer active:scale-98 uppercase tracking-wider"
+            >
+              {matchToEdit ? t.createMatchModal.saveBtn : t.createMatchModal.createBtn}
+            </button>
+          </div>
 
         </form>
 
       </div>
     </div>
   );
-};
 
+  return createPortal(modalContent, document.body);
+};

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Match } from '../types';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { MapPin, Calendar, Clock, ShieldCheck, Users, ChevronRight, CheckCircle2, Image as ImageIcon, Navigation } from 'lucide-react';
+import { MapPin, Calendar, Clock, ShieldCheck, Users, ChevronRight, CheckCircle2, Image as ImageIcon, Navigation, Phone, Award, User as UserIcon, Pencil, Trash2 } from 'lucide-react';
 import { formatDisplayName, getLocalizedMatch } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
+import { CreateMatchModal } from './CreateMatchModal';
 
 interface MatchCardProps {
   match: Match;
@@ -12,34 +13,58 @@ interface MatchCardProps {
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) => {
-  const { users, currentUser, startJoinMatchFlow } = useApp();
+  const { users, currentUser, firebaseUser, deleteMatch, startJoinMatchFlow } = useApp();
   const { language, t } = useLanguage();
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const localized = getLocalizedMatch(match, language);
 
+  const isOfficial = match.category === 'official' || (!match.category && match.createdByAdminId);
   const joinedPlayers = users.filter(u => match.joinedUserIds.includes(u.id));
   const emptySpotsCount = Math.max(0, match.totalSpots - match.joinedUserIds.length);
   const isUserJoined = currentUser ? match.joinedUserIds.includes(currentUser.id) : false;
   const isFull = match.joinedUserIds.length >= match.totalSpots;
   const isCancelled = match.status === 'Cancelled';
 
+  const userEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
+  const isAdmin = currentUser?.role === 'admin' || userEmail === 'luca.mergell@gmail.com';
+  const isCreator = Boolean(
+    currentUser && (
+      (match.creatorId && match.creatorId === currentUser.id) ||
+      (match.createdByAdminId && match.createdByAdminId === currentUser.id) ||
+      (firebaseUser && match.creatorId === firebaseUser.uid) ||
+      (match.creatorName && currentUser.name && match.creatorName.trim().toLowerCase() === currentUser.name.trim().toLowerCase()) ||
+      (match.joinedUserIds && match.joinedUserIds.length > 0 && match.joinedUserIds[0] === currentUser.id)
+    )
+  );
+  const canManage = isCreator || isAdmin;
+
   const allGalleryImages = [match.imageUrl, ...(match.galleryImageUrls || [])].filter((url): url is string => Boolean(url && url.trim()));
 
   // Skill badge color styling
   const getSkillBadgeColor = (skill: string) => {
     switch (skill) {
-      case 'Beginner': return 'bg-emerald-950/70 text-emerald-300 border-emerald-500/30';
-      case 'Intermediate': return 'bg-cyan-950/70 text-cyan-300 border-cyan-500/30';
-      case 'Advanced': return 'bg-purple-950/70 text-purple-300 border-purple-500/30';
-      case 'Pro': return 'bg-amber-950/70 text-amber-300 border-amber-500/30';
-      default: return 'bg-zinc-900/70 text-zinc-300 border-zinc-700/30';
+      case 'Beginner': return 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40';
+      case 'Intermediate': return 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40';
+      case 'Advanced': return 'bg-purple-950/80 text-purple-300 border-purple-500/40';
+      case 'Pro': return 'bg-amber-950/80 text-amber-300 border-amber-500/40';
+      default: return 'bg-zinc-900/80 text-zinc-300 border-zinc-700/40';
     }
   };
+
+  const creatorUser = match.creatorId ? users.find(u => u.id === match.creatorId) : null;
+  const creatorName = match.creatorName || creatorUser?.name || 'Player';
+  const creatorPhone = match.creatorPhone || creatorUser?.phoneNumber;
 
   return (
     <div 
       onClick={() => onSelectMatch(match)}
-      className="group relative glass-card glass-card-hover rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between cursor-pointer transition-all hover:border-purple-500/50 transform-gpu"
+      className={`group relative glass-card glass-card-hover rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between cursor-pointer transition-all transform-gpu ${
+        isOfficial 
+          ? 'border border-amber-500/40 hover:border-amber-400/80 shadow-amber-950/20' 
+          : 'border border-purple-800/40 hover:border-purple-500/60 shadow-purple-950/20'
+      }`}
     >
       
       {/* Top Banner & Location Header */}
@@ -48,27 +73,57 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
           <img
             src={match.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'}
             alt={localized.locationName}
-            className="w-full h-full object-cover opacity-70 group-hover:opacity-85 group-hover:scale-[1.03] transition-all duration-300 ease-out transform-gpu pointer-events-none"
+            className="w-full h-full object-cover opacity-75 group-hover:opacity-85 group-hover:scale-[1.03] transition-all duration-300 ease-out transform-gpu pointer-events-none"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0e071c] via-[#0e071c]/40 to-transparent"></div>
 
-          {/* District Badge */}
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 glass-pill px-3 py-1 rounded-full text-[11px] font-semibold text-white">
-            <MapPin className="w-3 h-3 text-purple-400" />
-            <span>{localized.district || match.district}, {t.matchCard.districtTbilisi}</span>
+          {/* Official vs Player Match Badge */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+            {isOfficial ? (
+              <div className="px-3 py-1 rounded-full bg-amber-500 text-black text-[11px] font-black uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-amber-900/50">
+                <Award className="w-3.5 h-3.5 text-black" />
+                <span>{language === 'ka' ? 'Padely' : 'Padely'}</span>
+              </div>
+            ) : (
+              <div className="px-3 py-1 rounded-full bg-purple-900/80 border border-purple-400/50 text-purple-200 text-[11px] font-bold flex items-center gap-1 backdrop-blur-md shadow-md">
+                <UserIcon className="w-3.5 h-3.5 text-purple-300" />
+                <span>{language === 'ka' ? 'მოთამაშის' : 'Player Match'}</span>
+              </div>
+            )}
           </div>
 
           {/* Skill Level Badge & Gallery Count Badge */}
           <div className="absolute top-3 right-3 flex items-center gap-1.5">
-            {allGalleryImages.length > 0 && (
-              <div
-                className="px-2.5 py-1 rounded-full bg-black/60 border border-white/20 text-white text-[11px] font-bold flex items-center gap-1 backdrop-blur-md shadow-lg"
-                title={t.matchCard.viewImages}
-              >
-                <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
-                <span>{allGalleryImages.length}</span>
+            {canManage && (
+              <div className="flex items-center gap-1 mr-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(true);
+                  }}
+                  className="p-1.5 rounded-full bg-purple-900/90 hover:bg-purple-600 text-white border border-purple-400/50 backdrop-blur-md transition-all cursor-pointer shadow-lg"
+                  title={language === 'ka' ? 'მატჩის რედაქტირება' : 'Edit Match'}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(language === 'ka' ? 'დარწმუნებული ხართ რომ გსურთ მატჩის წაშლა?' : 'Are you sure you want to delete this match?')) {
+                      deleteMatch(match.id);
+                    }
+                  }}
+                  className="p-1.5 rounded-full bg-red-950/90 hover:bg-red-800 text-red-200 border border-red-500/50 backdrop-blur-md transition-all cursor-pointer shadow-lg"
+                  title={language === 'ka' ? 'მატჩის წაშლა' : 'Delete Match'}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
+
+            
 
             <div className={`px-3 py-1 rounded-full border text-[11px] font-bold backdrop-blur-md ${getSkillBadgeColor(match.skillLevelRequired)}`}>
               {localized.skillLevel}
@@ -82,7 +137,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
                 {localized.title}
               </h3>
               <p className="text-xs text-purple-200/90 font-medium flex items-center gap-1 mt-0.5 truncate">
-                <span>📍</span> <span className="truncate">{localized.locationName}</span>
+                <MapPin className="w-3 h-3 text-purple-400 shrink-0" />
+                <span className="truncate">{localized.locationName} ({localized.district || match.district})</span>
               </p>
             </div>
 
@@ -103,6 +159,68 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
           </div>
         </div>
 
+        {/* Creator Header (for Player Created Matches) */}
+        {!isOfficial && (
+          <div className="px-4 pt-3 pb-1 flex items-center justify-between border-b border-purple-900/30 text-xs">
+            <div className="flex items-center gap-2">
+              <UserAvatar
+                name={creatorName}
+                userId={match.creatorId || 'creator'}
+                className="w-7 h-7 rounded-full text-[10px] font-bold ring-2 ring-purple-500/50"
+              />
+              <div>
+                <span className="text-[10px] text-purple-300/70 block leading-none">{language === 'ka' ? 'შექმნილია:' : 'Created by:'}</span>
+                <span className="font-bold text-white text-xs">{formatDisplayName(creatorName)}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Host Phone Action */}
+              {creatorPhone ? (
+                <a
+                  href={`tel:${creatorPhone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-2.5 py-1 rounded-xl bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-emerald-300 hover:text-emerald-200 text-[11px] font-extrabold flex items-center gap-1.5 transition-all shadow-sm"
+                  title={language === 'ka' ? `დარეკვა: ${creatorPhone}` : `Call Host: ${creatorPhone}`}
+                >
+                  <Phone className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>{creatorPhone}</span>
+                </a>
+              ) : null}
+
+              {/* Creator/Admin Actions */}
+              {canManage && (
+                <div className="flex items-center gap-1 border-l border-purple-800/40 pl-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditing(true);
+                    }}
+                    className="p-1.5 rounded-lg bg-purple-900/80 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 transition-all cursor-pointer"
+                    title={language === 'ka' ? 'მატჩის რედაქტირება' : 'Edit Match'}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm(language === 'ka' ? 'დარწმუნებული ხართ რომ გსურთ მატჩის წაშლა?' : 'Are you sure you want to delete this match?')) {
+                        deleteMatch(match.id);
+                      }
+                    }}
+                    className="p-1.5 rounded-lg bg-red-950/80 hover:bg-red-800 text-red-300 hover:text-white border border-red-500/40 transition-all cursor-pointer"
+                    title={language === 'ka' ? 'მატჩის წაშლა' : 'Delete Match'}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Date & Time Info */}
         <div className="p-4 space-y-3">
           <div className="flex items-center justify-between text-xs text-purple-200/90 glass-pill p-2.5 rounded-2xl">
@@ -121,10 +239,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
             <div className="flex items-center justify-between text-xs mb-2">
               <span className="text-purple-300/90 font-medium flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-purple-400" />
-                {t.matchCard.spots}: <strong className="text-white">{match.joinedUserIds.length}/{match.totalSpots} {t.matchCard.players}</strong>
-              </span>
-              <span className="text-[11px] font-semibold text-purple-400">
-                {emptySpotsCount > 0 ? `${emptySpotsCount} left!` : 'Full'}
+                <strong className="text-white">{match.joinedUserIds.length}/{match.totalSpots} {t.matchCard.players}</strong>
               </span>
             </div>
 
@@ -161,13 +276,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
             </div>
           </div>
 
-          {/* Included Equipment Badge */}
-          <div className="flex items-center gap-1.5 text-[11px] glass-pill p-2.5 rounded-2xl text-purple-200/90">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <p className="leading-tight">
-              <span className="font-semibold text-emerald-300">{t.matchCard.refundGuarantee}</span> {t.matchCard.refundSub}
-            </p>
-          </div>
+          
         </div>
       </div>
 
@@ -217,6 +326,13 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onSelectMatch }) =>
         )}
       </div>
 
+      {/* Edit Match Modal */}
+      {isEditing && (
+        <CreateMatchModal
+          matchToEdit={match}
+          onClose={() => setIsEditing(false)}
+        />
+      )}
     </div>
   );
 };

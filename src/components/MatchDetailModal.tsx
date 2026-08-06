@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
-import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info, UserPlus, Trash2, Bot, Power, Image as ImageIcon, Navigation } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, ShieldCheck, Users, CheckCircle2, ChevronRight, Share2, Info, UserPlus, Trash2, Bot, Power, Image as ImageIcon, Navigation, Phone, Pencil } from 'lucide-react';
 import { formatDisplayName, getLocalizedMatch } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
 import { MatchGalleryModal } from './MatchGalleryModal';
+import { CreateMatchModal } from './CreateMatchModal';
 
 export const MatchDetailModal: React.FC = () => {
   const { 
@@ -12,7 +13,8 @@ export const MatchDetailModal: React.FC = () => {
     selectedMatchId, 
     openMatchDetails, 
     users, 
-    currentUser, 
+    currentUser,
+    firebaseUser, 
     startJoinMatchFlow, 
     openUserProfile,
     showNotification,
@@ -22,11 +24,13 @@ export const MatchDetailModal: React.FC = () => {
     removePlayerFromMatch,
     clearPlaceholdersFromMatch,
     activateMatch,
-    deactivateMatch
+    deactivateMatch,
+    deleteMatch
   } = useApp();
 
   const [selectedAssignUserId, setSelectedAssignUserId] = useState<string>('');
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const { language, t } = useLanguage();
 
@@ -45,6 +49,23 @@ export const MatchDetailModal: React.FC = () => {
   const isFull = match.joinedUserIds.length >= match.totalSpots;
   const isCancelled = match.status === 'Cancelled';
 
+  const creatorUser = match.creatorId ? users.find(u => u.id === match.creatorId) : null;
+  const creatorPhone = match.creatorPhone || creatorUser?.phoneNumber;
+  const isOfficial = match.category === 'official' || (!match.category && match.createdByAdminId);
+
+  const userEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
+  const isAdmin = currentUser?.role === 'admin' || userEmail === 'luca.mergell@gmail.com';
+  const isCreator = Boolean(
+    currentUser && (
+      (match.creatorId && match.creatorId === currentUser.id) ||
+      (match.createdByAdminId && match.createdByAdminId === currentUser.id) ||
+      (firebaseUser && match.creatorId === firebaseUser.uid) ||
+      (match.creatorName && currentUser.name && match.creatorName.trim().toLowerCase() === currentUser.name.trim().toLowerCase()) ||
+      (match.joinedUserIds && match.joinedUserIds.length > 0 && match.joinedUserIds[0] === currentUser.id)
+    )
+  );
+  const canManage = isCreator || isAdmin;
+
   const allGalleryImages = [match.imageUrl, ...(match.galleryImageUrls || [])].filter((url): url is string => Boolean(url && url.trim()));
 
   const shareMatch = () => {
@@ -55,8 +76,8 @@ export const MatchDetailModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div className="relative w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-800/50 rounded-2xl sm:rounded-3xl shadow-2xl my-auto text-white custom-scrollbar">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-800/50 rounded-2xl sm:rounded-3xl shadow-2xl my-auto text-white custom-scrollbar pb-8 sm:pb-4">
         
         {/* Header Image Cover */}
         <div className="relative h-44 sm:h-56 w-full shrink-0">
@@ -81,6 +102,31 @@ export const MatchDetailModal: React.FC = () => {
             ) : <div />}
 
             <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+              {canManage && (
+                <>
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    title={language === 'ka' ? 'მატჩის რედაქტირება' : 'Edit Match'}
+                    className="px-2.5 sm:px-3 py-1.5 rounded-full bg-purple-900/90 hover:bg-purple-700 text-white border border-purple-400/50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-lg hover:scale-105"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-purple-200" />
+                    <span className="hidden sm:inline">{language === 'ka' ? 'რედაქტირება' : 'Edit'}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm(language === 'ka' ? 'დარწმუნებული ხართ რომ გსურთ მატჩის წაშლა?' : 'Are you sure you want to delete this match?')) {
+                        deleteMatch(match.id);
+                        closeModal();
+                      }
+                    }}
+                    title={language === 'ka' ? 'მატჩის წაშლა' : 'Delete Match'}
+                    className="px-2.5 sm:px-3 py-1.5 rounded-full bg-red-950/90 hover:bg-red-800 text-red-200 border border-red-500/50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-lg hover:scale-105"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-300" />
+                    <span className="hidden sm:inline">{language === 'ka' ? 'წაშლა' : 'Delete'}</span>
+                  </button>
+                </>
+              )}
               <button
                 onClick={shareMatch}
                 title={t.matchDetails.shareBtn}
@@ -148,6 +194,29 @@ export const MatchDetailModal: React.FC = () => {
         {/* Modal Body Content */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           
+          {/* Organizer Info (Player Match) */}
+          {!isOfficial && (
+            <div className="p-3 bg-purple-950/40 rounded-2xl border border-purple-800/30 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <UserAvatar name={match.creatorName || creatorUser?.name || 'Player'} userId={match.creatorId || 'creator'} className="w-8 h-8 rounded-full ring-2 ring-purple-500/40 text-xs font-bold" />
+                <div>
+                  <div className="text-[10px] text-purple-300/70 font-semibold">{language === 'ka' ? 'ორგანიზატორი მოთამაშე:' : 'Organizing Player:'}</div>
+                  <div className="text-xs font-bold text-white">{formatDisplayName(match.creatorName || creatorUser?.name || 'Player')}</div>
+                </div>
+              </div>
+              {creatorPhone && (
+                <a
+                  href={`tel:${creatorPhone}`}
+                  className="px-3 py-1.5 rounded-xl bg-purple-900/80 hover:bg-purple-800 text-emerald-300 hover:text-emerald-200 border border-purple-500/40 text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-md"
+                  title={language === 'ka' ? `დარეკვა: ${creatorPhone}` : `Call Host: ${creatorPhone}`}
+                >
+                  <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>{creatorPhone}</span>
+                </a>
+              )}
+            </div>
+          )}
+
           {/* Key Match Details Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
             <div className="p-2.5 sm:p-3 bg-purple-950/40 rounded-xl sm:rounded-2xl border border-purple-800/30">
@@ -223,23 +292,19 @@ export const MatchDetailModal: React.FC = () => {
                       </button>
                     )}
 
-                    {match.status === 'Cancelled' ? (
+                    {(currentUser?.role === 'admin' || currentUser?.id === match.creatorId) && (
                       <button
-                        onClick={() => activateMatch(match.id)}
-                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/50 text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow"
-                        title="Activate this match"
+                        onClick={() => {
+                          if (confirm(language === 'ka' ? 'დარწმუნებული ხართ, რომ გსურთ მატჩის წაშლა?' : 'Are you sure you want to delete this match?')) {
+                            deleteMatch(match.id);
+                            closeModal();
+                          }
+                        }}
+                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-red-900/80 hover:bg-red-800 text-white text-[10px] sm:text-[11px] font-bold border border-red-500/50 flex items-center gap-1 transition-all cursor-pointer"
+                        title="Delete Match"
                       >
-                        <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" />
-                        <span>Activate Match</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => deactivateMatch(match.id)}
-                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800/40 text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                        title="Deactivate this match"
-                      >
-                        <Power className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />
-                        <span>Deactivate Match</span>
+                        <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-300" />
+                        <span>Delete</span>
                       </button>
                     )}
                   </>
@@ -418,6 +483,14 @@ export const MatchDetailModal: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Edit Match Modal */}
+      {isEditModalOpen && (
+        <CreateMatchModal
+          matchToEdit={match}
+          onClose={() => setIsEditModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

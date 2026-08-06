@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
         <nav className="hidden md:flex items-center gap-1 bg-purple-950/40 p-1 rounded-xl border border-purple-800/20">
           <button
             onClick={() => setCurrentView('landing')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
               currentView === 'landing' 
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40' 
                 : 'text-purple-200/80 hover:text-white hover:bg-purple-900/30'
@@ -55,31 +55,42 @@ export const Navbar: React.FC = () => {
             {t.nav.home}
           </button>
           <button
-            onClick={() => setCurrentView('discovery')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
-              currentView === 'discovery' 
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40' 
+            onClick={() => setCurrentView('official-matches')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
+              currentView === 'official-matches' 
+                ? 'bg-amber-600 text-white shadow-md shadow-amber-900/40 font-bold' 
+                : 'text-amber-300 hover:text-white hover:bg-purple-900/30'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-300" />
+            {t.nav.officialMatches}
+          </button>
+          <button
+            onClick={() => setCurrentView('player-matches')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
+              currentView === 'player-matches' 
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40 font-bold' 
                 : 'text-purple-200/80 hover:text-white hover:bg-purple-900/30'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
-            {t.nav.matches}
+            {t.nav.playerMatches}
           </button>
           <button
             onClick={() => setCurrentView('rankings')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
               currentView === 'rankings' 
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40' 
                 : 'text-purple-200/80 hover:text-white hover:bg-purple-900/30'
             }`}
           >
-            <Trophy className="w-3.5 h-3.5" />
+            <Trophy className="w-3.5 h-3.5 text-purple-400" />
             {t.nav.rankings}
           </button>
           {(isAuthorizedAdmin || currentView === 'admin') && (
             <button
               onClick={() => setCurrentView('admin')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
                 currentView === 'admin' 
                   ? 'bg-amber-600 text-white shadow-md shadow-amber-900/40' 
                   : 'text-amber-300 hover:text-white hover:bg-amber-900/30'
@@ -108,9 +119,10 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => openUserProfile(currentUser.id)}
                 title={`${t.nav.profile} (${formatDisplayName(currentUser.name)})`}
-                className="w-9 h-9 rounded-xl border border-white/20 transition-all flex items-center justify-center shrink-0 cursor-pointer overflow-hidden shadow-md hover:scale-105"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-white/20 bg-purple-950/40 hover:bg-purple-900/60 transition-all cursor-pointer shadow-md hover:scale-105"
               >
-                <UserAvatar name={currentUser.name} userId={currentUser.id} className="w-full h-full rounded-xl text-xs font-bold" />
+                <UserAvatar name={currentUser.name} userId={currentUser.id} className="w-7 h-7 rounded-lg text-xs font-bold shrink-0" />
+                <span className="text-xs font-semibold text-purple-100">{t.nav.profile}</span>
               </button>
 
               <button
@@ -124,10 +136,10 @@ export const Navbar: React.FC = () => {
           ) : (
             <button
               onClick={openAuthModal}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-purple-900/40 transition-all active:scale-95"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-purple-900/40 transition-all active:scale-95 cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.nav.signIn}</span>
+              <span>{t.nav.signIn}</span>
             </button>
           )}
         </div>

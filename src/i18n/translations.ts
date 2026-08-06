@@ -7,7 +7,10 @@ export const translations = {
       brand: 'PADELY',
       city: 'თბილისი',
       home: 'მთავარი',
+      officialMatches: 'ოფიციალური მატჩები',
+      playerMatches: 'მოთამაშეების მატჩები',
       matches: 'თამაშები',
+      createMatch: 'მატჩის შექმნა',
       rankings: 'რეიტინგი',
       profile: 'პროფილი',
       admin: 'ადმინი',
@@ -18,7 +21,7 @@ export const translations = {
     // Hero / Landing
     landing: {
       badge: 'საიტი მუშაობს სატესტო რეჟიმში',
-      titleLine1: 'შეუერთდი ღია',
+      titleLine1: 'შექმენი ან შეუერთდი',
       titleLine2: 'პადელის მატჩებს',
       subtitle: 'უკვე აღარ გჭირდება 4 კაცის შეკრება. იპოვე სასურველი მატჩი, შეუერთდი და მოდი კორტზე!',
       browseBtn: 'ყველა მატჩი',
@@ -38,7 +41,7 @@ export const translations = {
       title: 'ღია მატჩები',
       cityBadge: 'თბილისი',
       subtitle: 'შეუერთდი სასურველ მატჩს და ითამაშე პადელი მარტივად!',
-      refundBanner: '100% თანხის დაბრუნება არ შევსებულ თამაშზე',
+      refundBanner: '100% თანხის დაბრუნება თუ თამაში ვერ შეივსო',
       showing: 'სულ:',
       matchesAvailable: 'თამაში',
       currencyNote: 'ფასები GEL-ში',
@@ -50,7 +53,7 @@ export const translations = {
     matchCard: {
       spots: 'ადგილები',
       players: 'მოთამაშე',
-      joined: 'შეერთებულია',
+      joined: 'მიღებულია!',
       join: 'შეუერთდი თამაშს',
       details: 'დეტალები',
       fullyBooked: 'შევსებულია',
@@ -264,6 +267,8 @@ export const translations = {
       matchHistory: 'თამაშების ისტორია',
       noMatchHistory: 'ისტორია ცარიელია',
       noHistorySub: 'შეუერთდით თამაშებს სტატისტიკის დასაგროვებლად',
+      createdMatches: 'შექმნილი მატჩები',
+      noCreatedMatches: 'შექმნილი მატჩები არ არის',
     },
 
     // Footer
@@ -300,7 +305,10 @@ export const translations = {
       brand: 'PADELY',
       city: 'TBILISI',
       home: 'Home',
-      matches: 'Find Matches',
+      officialMatches: 'Official Matches',
+      playerMatches: 'Player Matches',
+      matches: 'Matches',
+      createMatch: 'Create Match',
       rankings: 'Leaderboard',
       profile: 'Profile',
       admin: 'Admin',
@@ -557,6 +565,8 @@ export const translations = {
       matchHistory: 'Match History',
       noMatchHistory: 'No match history yet.',
       noHistorySub: 'Join matches to start logging stats!',
+      createdMatches: 'Created Matches',
+      noCreatedMatches: 'No created matches yet.',
     },
 
     // Footer

@@ -5,6 +5,8 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Navbar } from './components/Navbar';
 import { MobileTabNav } from './components/MobileTabNav';
 import { LandingView } from './components/LandingView';
+import { OfficialMatchesView } from './components/OfficialMatchesView';
+import { PlayerMatchesView } from './components/PlayerMatchesView';
 import { MatchDiscoveryView } from './components/MatchDiscoveryView';
 import { ProfileView } from './components/ProfileView';
 import { RankingsView } from './components/RankingsView';
@@ -29,7 +31,7 @@ const MainContent: React.FC = () => {
       {/* Dynamic Animated Abstract Background */}
       <AbstractBackgroundAnimation />
 
-      <div className="relative z-10 flex-1">
+      <div className="relative flex-1">
         {/* Navigation Bar */}
         <Navbar />
 
@@ -56,7 +58,9 @@ const MainContent: React.FC = () => {
         {/* Active Page View Rendering */}
         <main>
           {currentView === 'landing' && <LandingView />}
-          {currentView === 'discovery' && <MatchDiscoveryView />}
+          {currentView === 'official-matches' && <OfficialMatchesView />}
+          {currentView === 'player-matches' && <PlayerMatchesView />}
+          {currentView === 'discovery' && <PlayerMatchesView />}
           {currentView === 'profile' && <ProfileView />}
           {currentView === 'rankings' && <RankingsView />}
           {currentView === 'admin' && <AdminDashboardView />}

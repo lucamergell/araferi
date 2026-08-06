@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { SkillLevel, PlayingPosition } from '../types';
-import { Sparkles, Trophy, PhoneCall } from 'lucide-react';
+import { Sparkles, Trophy, PhoneCall, AlertCircle } from 'lucide-react';
 
 export const OnboardingProfileModal: React.FC = () => {
   const { currentUser, isAuthLoading, isUsersLoaded, updatePlayerProfile, setCurrentView, showNotification } = useApp();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [hasCompletedLocal, setHasCompletedLocal] = useState<boolean>(() => {
     if (!currentUser) return false;
@@ -18,6 +18,8 @@ export const OnboardingProfileModal: React.FC = () => {
   const [age, setAge] = useState<number | string>(currentUser?.age && currentUser.age > 0 ? currentUser.age : '');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(currentUser?.skillLevel || 'Beginner');
   const [preferredPosition, setPreferredPosition] = useState<PlayingPosition>(currentUser?.preferredPosition || 'Flexible');
+
+  const [errors, setErrors] = useState<{ name?: string; phone?: string; age?: string }>({});
 
   useEffect(() => {
     if (currentUser) {
@@ -48,22 +50,42 @@ export const OnboardingProfileModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: { name?: string; phone?: string; age?: string } = {};
 
-    if (!name || !name.trim()) {
-      showNotification('Please enter your full name.', 'error');
-      return;
+    if (!name || !name.trim() || name.trim().length < 2) {
+      newErrors.name = language === 'ka' 
+        ? 'გთხოვთ შეიყვანოთ თქვენი სრული სახელი და გვარი!' 
+        : 'Please enter your full name!';
     }
 
+    const cleanPhoneDigits = phoneNumber.replace(/[^0-9]/g, '');
     if (!phoneNumber || !phoneNumber.trim()) {
-      showNotification(t.profileModal.phoneRequiredError || 'Phone number is required!', 'error');
-      return;
+      newErrors.phone = language === 'ka' 
+        ? 'ტელეფონის ნომრის შეყვანა სავალდებულოა!' 
+        : 'Mobile phone number is required!';
+    } else if (cleanPhoneDigits.length < 8 || cleanPhoneDigits.length > 15) {
+      newErrors.phone = language === 'ka' 
+        ? 'გთხოვთ შეიყვანოთ სწორი მობილურის ნომერი (მინიმუმ 8 ციფრი, მაგ: 599123456)!' 
+        : 'Please enter a valid mobile phone number (at least 8 digits, e.g. 599123456)!';
     }
 
     const parsedAge = Number(age);
-    if (!age || isNaN(parsedAge) || parsedAge < 12 || parsedAge > 99) {
-      showNotification('Please enter a valid age between 12 and 99.', 'error');
+    if (!age || isNaN(parsedAge) || parsedAge < 10 || parsedAge > 99) {
+      newErrors.age = language === 'ka' 
+        ? 'გთხოვთ მიუთითოთ სწორი ასაკი (10-დან 99 წლამდე).' 
+        : 'Please enter a valid age between 10 and 99.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showNotification(
+        language === 'ka' ? 'გთხოვთ შეავსოთ ყველა სავალდებულო ველი სწორად!' : 'Please fill all required profile fields correctly!',
+        'error'
+      );
       return;
     }
+
+    setErrors({});
 
     if (currentUser?.id) {
       localStorage.setItem(`padely_onboarding_completed_${currentUser.id}`, 'true');
@@ -79,13 +101,13 @@ export const OnboardingProfileModal: React.FC = () => {
       isProfileComplete: true,
     });
 
-    showNotification('Profile updated successfully!', 'success');
+    showNotification(language === 'ka' ? 'პროფილი წარმატებით განახლდა!' : 'Profile updated successfully!', 'success');
     setCurrentView('discovery');
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-lg overflow-y-auto animate-fadeIn">
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-600/50 rounded-3xl shadow-2xl text-white p-5 sm:p-8 space-y-6 my-auto custom-scrollbar">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-lg overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-600/50 rounded-3xl shadow-2xl text-white p-5 sm:p-8 pb-10 sm:pb-8 space-y-6 my-auto custom-scrollbar">
         
         {/* Header */}
         <div className="text-center space-y-2">
@@ -118,24 +140,40 @@ export const OnboardingProfileModal: React.FC = () => {
                 type="text"
                 required
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={e => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
+                }}
                 placeholder="e.g. Giorgi Kapanadze"
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
+                className={`w-full px-3.5 py-2.5 bg-purple-950/60 border ${errors.name ? 'border-red-500 ring-1 ring-red-500' : 'border-purple-800/50'} rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500`}
               />
+              {errors.name && (
+                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3 h-3 inline" /> {errors.name}
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-purple-300/90 font-bold mb-1">
-                {t.profileModal.phoneNumber} <span className="text-amber-400 font-bold">* ({t.common?.required || 'Required'})</span>
+                {t.profileModal.phoneNumber} <span className="text-amber-400 font-bold">*</span>
               </label>
               <input
                 type="tel"
                 required
                 value={phoneNumber}
-                onChange={e => setPhoneNumber(e.target.value)}
+                onChange={e => {
+                  setPhoneNumber(e.target.value);
+                  if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
+                }}
                 placeholder={t.profileModal.phonePlaceholder || '+995 5xx xx xx xx'}
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-500 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-lg shadow-purple-900/30"
+                className={`w-full px-3.5 py-2.5 bg-purple-950/60 border ${errors.phone ? 'border-red-500 ring-2 ring-red-500' : 'border-purple-500 focus:ring-2 focus:ring-purple-400'} rounded-xl text-white placeholder-purple-400/50 focus:outline-none shadow-lg shadow-purple-900/30`}
               />
+              {errors.phone && (
+                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3 h-3 inline" /> {errors.phone}
+                </p>
+              )}
             </div>
           </div>
 
@@ -147,13 +185,21 @@ export const OnboardingProfileModal: React.FC = () => {
               <input
                 type="number"
                 required
-                min={12}
+                min={10}
                 max={99}
                 value={age}
-                onChange={e => setAge(e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={e => {
+                  setAge(e.target.value === '' ? '' : e.target.value);
+                  if (errors.age) setErrors(prev => ({ ...prev, age: undefined }));
+                }}
                 placeholder="e.g. 25"
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500"
+                className={`w-full px-3.5 py-2.5 bg-purple-950/60 border ${errors.age ? 'border-red-500 ring-1 ring-red-500' : 'border-purple-800/50'} rounded-xl text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-500`}
               />
+              {errors.age && (
+                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3 h-3 inline" /> {errors.age}
+                </p>
+              )}
             </div>
 
             <div>
@@ -163,7 +209,7 @@ export const OnboardingProfileModal: React.FC = () => {
               <select
                 value={skillLevel}
                 onChange={e => setSkillLevel(e.target.value as SkillLevel)}
-                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500 cursor-pointer"
               >
                 <option value="Beginner">{t.common.beginner} (1.0 - 2.5)</option>
                 <option value="Intermediate">{t.common.intermediate} (3.0 - 4.0)</option>
@@ -180,7 +226,7 @@ export const OnboardingProfileModal: React.FC = () => {
             <select
               value={preferredPosition}
               onChange={e => setPreferredPosition(e.target.value as PlayingPosition)}
-              className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-3.5 py-2.5 bg-purple-950/60 border border-purple-800/50 rounded-xl text-white focus:outline-none focus:border-purple-500 cursor-pointer"
             >
               <option value="Left / Drive">{t.profileModal.leftDrive}</option>
               <option value="Right / Backhand">{t.profileModal.rightBackhand}</option>

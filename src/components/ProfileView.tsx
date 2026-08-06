@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { EditProfileModal } from './EditProfileModal';
+import { MatchCard } from './MatchCard';
 import { formatDisplayName } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
 import { 
   Trophy, MapPin, Calendar, Flame, Clock, Users, ShieldCheck, 
-  Award, TrendingUp, CheckCircle2, XCircle, Settings, Edit3, Target
+  Award, TrendingUp, CheckCircle2, XCircle, Settings, Edit3, Target, PlusCircle
 } from 'lucide-react';
 
 export const ProfileView: React.FC = () => {
-  const { users, selectedProfileUserId, currentUser, openUserProfile } = useApp();
-  const { t } = useLanguage();
+  const { users, matches, selectedProfileUserId, currentUser, openUserProfile, openMatchDetails } = useApp();
+  const { language, t } = useLanguage();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const profileUser = users.find(u => u.id === selectedProfileUserId) || currentUser || users[1];
@@ -30,6 +31,13 @@ export const ProfileView: React.FC = () => {
   const displayRank = isPlaceholderUser ? '-' : (userRankIdx >= 0 ? userRankIdx + 1 : (profileUser.stats.rankingPosition || 1));
 
   const stats = profileUser.stats;
+
+  const createdMatches = matches.filter(
+    m => m.creatorId === profileUser.id || 
+         m.createdByAdminId === profileUser.id ||
+         (m.creatorName && profileUser.name && m.creatorName.trim().toLowerCase() === profileUser.name.trim().toLowerCase()) ||
+         (m.joinedUserIds && m.joinedUserIds.length > 0 && m.joinedUserIds[0] === profileUser.id)
+  );
 
   return (
     <div className="min-h-screen text-white py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-24">
@@ -195,6 +203,31 @@ export const ProfileView: React.FC = () => {
             </div>
 
           </div>
+        </div>
+
+        {/* Created Matches Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <PlusCircle className="w-4 h-4 text-purple-400" />
+              <span>{t.profile.createdMatches || (language === 'ka' ? 'შექმნილი მატჩები' : 'Created Matches')}</span>
+            </h2>
+            <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-purple-900/60 border border-purple-700/40 text-purple-300">
+              {createdMatches.length}
+            </span>
+          </div>
+
+          {createdMatches.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {createdMatches.map(match => (
+                <MatchCard key={match.id} match={match} onSelectMatch={openMatchDetails} />
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center bg-[#120a21] rounded-2xl border border-purple-900/30 text-xs text-purple-300/70">
+              <p>{t.profile.noCreatedMatches || (language === 'ka' ? 'შექმნილი მატჩები არ არის' : 'No created matches yet.')}</p>
+            </div>
+          )}
         </div>
 
         {/* Match History */}

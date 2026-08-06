@@ -11,7 +11,7 @@ export const AuthModal: React.FC = () => {
   if (!isAuthModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-sm bg-[#120a21] border border-purple-800/50 rounded-3xl shadow-2xl overflow-hidden text-white p-6 space-y-6">
         
         {/* Header */}

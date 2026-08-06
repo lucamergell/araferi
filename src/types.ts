@@ -1,8 +1,12 @@
-export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Pro' | 'Open to All';
+export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Pro' | 'Open to All' | 'Any level';
 
 export type PlayingPosition = 'Left / Drive' | 'Right / Backhand' | 'Flexible';
 
 export type MatchStatus = 'Open' | 'Fully Booked' | 'Completed' | 'Cancelled';
+
+export type MatchCategory = 'official' | 'player';
+
+export type MatchType = 'Friendly' | 'Competitive' | 'Training';
 
 export interface PlayerStats {
   totalMatches: number;
@@ -56,6 +60,9 @@ export interface User {
 
 export interface Match {
   id: string;
+  category?: MatchCategory; // 'official' | 'player'
+  matchType?: MatchType; // 'Friendly' | 'Competitive' | 'Training'
+  courtId?: string; // Pre-made Court ID
   title: string;
   titleKa?: string;
   titleEn?: string;
@@ -71,8 +78,8 @@ export interface Match {
   dayOfWeekKa?: string;
   dayOfWeekEn?: string;
   startTime: string; // e.g. "18:00"
-  durationMinutes: number; // e.g. 90
-  totalSpots: number; // Default 4
+  durationMinutes: number; // e.g. 60 | 90 | 120
+  totalSpots: number; // Default 4 or 2
   joinedUserIds: string[]; // List of user IDs
   skillLevelRequired: SkillLevel;
   courtCostGel: number; // e.g. 80 GEL
@@ -81,7 +88,12 @@ export interface Match {
   descriptionKa?: string;
   descriptionEn?: string;
   status: MatchStatus;
-  createdByAdminId: string;
+  createdByAdminId?: string;
+  creatorId?: string;
+  creatorName?: string;
+  creatorAvatar?: string;
+  creatorPhone?: string;
+  allowPhoneOnCard?: boolean;
   createdAt: string;
   imageUrl?: string;
   googleMapsUrl?: string;

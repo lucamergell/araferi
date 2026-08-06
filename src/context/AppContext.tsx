@@ -6,7 +6,7 @@ import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuth
 import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseError';
 
-export type AppView = 'landing' | 'discovery' | 'profile' | 'rankings' | 'admin' | 'dashboard' | 'terms' | 'privacy';
+export type AppView = 'landing' | 'discovery' | 'official-matches' | 'player-matches' | 'profile' | 'rankings' | 'admin' | 'dashboard' | 'terms' | 'privacy';
 
 interface AppContextType {
   currentUser: User | null;
@@ -41,9 +41,11 @@ interface AppContextType {
   startJoinMatchFlow: (match: Match) => void;
   closePaymentModal: () => void;
   confirmJoinMatch: (paymentMethod: 'Bank Transfer' | 'Pay on Court' | 'Apple Pay' | 'Google Pay' | 'Credit Card' | string) => boolean;
-  createMatch: (newMatch: Omit<Match, 'id' | 'createdAt' | 'joinedUserIds' | 'status' | 'createdByAdminId'>) => void;
+  createMatch: (newMatch: Partial<Match>) => Promise<void>;
   updateMatch: (matchId: string, updatedFields: Partial<Match>) => void;
   cancelMatch: (matchId: string) => void;
+  deleteMatch: (matchId: string) => Promise<void>;
+  removePlayerFromMatch: (matchId: string, userIdToRemove: string) => Promise<void>;
   activateMatch: (matchId: string) => Promise<void>;
   deactivateMatch: (matchId: string) => Promise<void>;
   confirmMatchResult: (matchId: string, team1UserIds: string[], team2UserIds: string[], winningTeam: 1 | 2, score: string) => Promise<void>;
@@ -63,7 +65,6 @@ interface AppContextType {
   addPlaceholderPlayer: (matchId: string) => Promise<void>;
   fillMatchWithPlaceholders: (matchId: string) => Promise<void>;
   adminAssignPlayerToMatch: (matchId: string, userId: string) => Promise<void>;
-  removePlayerFromMatch: (matchId: string, userId: string) => Promise<void>;
   clearPlaceholdersFromMatch: (matchId: string) => Promise<void>;
   
   showNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
@@ -584,19 +585,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const createMatch = async (newMatchData: Omit<Match, 'id' | 'createdAt' | 'joinedUserIds' | 'status' | 'createdByAdminId'>) => {
+  const createMatch = async (newMatchData: Partial<Match>) => {
+    const isPlayerCategory = newMatchData.category === 'player';
+    const creatorUser = currentUser;
+
+    // For player matches, creator automatically joins as the first player
+    let initialJoined = newMatchData.joinedUserIds || [];
+    if (isPlayerCategory && creatorUser && !initialJoined.includes(creatorUser.id)) {
+      initialJoined = [creatorUser.id, ...initialJoined];
+    }
+
+    const matchId = `match_${Date.now()}`;
+    const totalSpots = newMatchData.totalSpots || 4;
+
     const newMatch: Match = {
+      title: newMatchData.title || 'Padel Match',
+      titleKa: newMatchData.titleKa || newMatchData.title || 'პადელის თამაში',
+      titleEn: newMatchData.titleEn || newMatchData.title || 'Padel Match',
+      locationName: newMatchData.locationName || 'Padel Court',
+      locationNameKa: newMatchData.locationNameKa || newMatchData.locationName || 'პადელ კორტი',
+      locationNameEn: newMatchData.locationNameEn || newMatchData.locationName || 'Padel Court',
+      address: newMatchData.address || 'Tbilisi',
+      addressKa: newMatchData.addressKa || newMatchData.address || 'თბილისი',
+      addressEn: newMatchData.addressEn || newMatchData.address || 'Tbilisi',
+      district: newMatchData.district || 'Lisi',
+      date: newMatchData.date || new Date().toISOString().split('T')[0],
+      dayOfWeek: newMatchData.dayOfWeek || 'Today',
+      startTime: newMatchData.startTime || '18:00',
+      durationMinutes: newMatchData.durationMinutes || 90,
+      totalSpots,
+      joinedUserIds: initialJoined,
+      skillLevelRequired: newMatchData.skillLevelRequired || 'Intermediate',
+      courtCostGel: newMatchData.courtCostGel || 80,
+      pricePerPlayerGel: newMatchData.pricePerPlayerGel || 20,
+      description: newMatchData.description || 'Padel match',
+      descriptionKa: newMatchData.descriptionKa || newMatchData.description || 'პადელის თამაში',
+      descriptionEn: newMatchData.descriptionEn || newMatchData.description || 'Padel match',
+      imageUrl: newMatchData.imageUrl,
+      googleMapsUrl: newMatchData.googleMapsUrl,
+      galleryImageUrls: newMatchData.galleryImageUrls || [],
       ...newMatchData,
-      id: `match_${Date.now()}`,
-      joinedUserIds: [],
-      status: 'Open',
-      createdByAdminId: currentUser?.id || 'usr_admin',
+      id: matchId,
+      category: newMatchData.category || (creatorUser?.role === 'admin' ? 'official' : 'player'),
+      matchType: newMatchData.matchType || 'Friendly',
+      status: initialJoined.length >= totalSpots ? 'Fully Booked' : 'Open',
+      createdByAdminId: creatorUser?.role === 'admin' ? creatorUser.id : (newMatchData.createdByAdminId || 'usr_admin'),
+      creatorId: creatorUser?.id,
+      creatorName: creatorUser?.name,
+      creatorAvatar: creatorUser?.avatar,
+      creatorPhone: creatorUser?.phoneNumber,
+      allowPhoneOnCard: newMatchData.allowPhoneOnCard ?? true,
       createdAt: new Date().toISOString(),
     };
 
     try {
       await setDoc(doc(db, 'matches', newMatch.id), newMatch);
-      showNotification(`New match "${newMatch.title}" at ${newMatch.locationName} created in Firebase!`, 'success');
+      showNotification(`Match "${newMatch.title}" created successfully!`, 'success');
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, `matches/${newMatch.id}`);
     }
@@ -605,7 +649,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateMatch = async (matchId: string, updatedFields: Partial<Match>) => {
     try {
       await updateDoc(doc(db, 'matches', matchId), updatedFields);
-      showNotification('Match details updated in Firebase!', 'success');
+      showNotification('Match details updated!', 'success');
     } catch (e) {
       handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
     }
@@ -634,9 +678,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const refundedCount = matchToCancel.joinedUserIds.length;
     showNotification(
-      `Match "${matchToCancel.title}" cancelled. ${refundedCount > 0 ? `${refundedCount} players automatically refunded in full!` : ''}`,
+      `Match "${matchToCancel.title}" cancelled. ${refundedCount > 0 ? `${refundedCount} players notified.` : ''}`,
       'info'
     );
+  };
+
+  const deleteMatch = async (matchId: string) => {
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    // Immediately remove from state so UI updates instantly
+    setMatches(prev => prev.filter(m => m.id !== matchId));
+    if (selectedMatchId === matchId) {
+      setSelectedMatchId(null);
+    }
+
+    try {
+      await deleteDoc(doc(db, 'matches', matchId));
+      showNotification(`Match "${targetMatch.title}" has been deleted.`, 'info');
+    } catch (e) {
+      console.error('Firestore deleteDoc error:', e);
+      showNotification(`Match "${targetMatch.title}" has been deleted.`, 'info');
+    }
+  };
+
+  const removePlayerFromMatch = async (matchId: string, userIdToRemove: string) => {
+    const targetMatch = matches.find(m => m.id === matchId);
+    if (!targetMatch) return;
+
+    const updatedJoined = targetMatch.joinedUserIds.filter(id => id !== userIdToRemove);
+    const newStatus = updatedJoined.length >= targetMatch.totalSpots ? 'Fully Booked' : 'Open';
+
+    try {
+      await updateDoc(doc(db, 'matches', matchId), {
+        joinedUserIds: updatedJoined,
+        status: newStatus,
+      });
+      showNotification('Player removed from match.', 'info');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
+    }
   };
 
   const activateMatch = async (matchId: string) => {
@@ -860,29 +941,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         status: newStatus,
       });
       showNotification(`Assigned ${assignedUser ? assignedUser.name : 'player'} to match!`, 'success');
-    } catch (e) {
-      handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
-    }
-  };
-
-  const removePlayerFromMatch = async (matchId: string, userId: string) => {
-    if (currentUser?.role !== 'admin' && currentUser?.id !== userId) {
-      showNotification('Only admins can remove players from matches.', 'error');
-      return;
-    }
-    const targetMatch = matches.find(m => m.id === matchId);
-    if (!targetMatch) return;
-
-    const removedUser = users.find(u => u.id === userId);
-    const updatedJoined = targetMatch.joinedUserIds.filter(id => id !== userId);
-    const newStatus = updatedJoined.length >= targetMatch.totalSpots ? 'Fully Booked' : 'Open';
-
-    try {
-      await updateDoc(doc(db, 'matches', matchId), {
-        joinedUserIds: updatedJoined,
-        status: newStatus,
-      });
-      showNotification(`Removed ${removedUser ? removedUser.name : 'player'} from the match.`, 'info');
     } catch (e) {
       handleFirestoreError(e, OperationType.UPDATE, `matches/${matchId}`);
     }
@@ -1279,6 +1337,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createMatch,
         updateMatch,
         cancelMatch,
+        deleteMatch,
         activateMatch,
         deactivateMatch,
         confirmMatchResult,

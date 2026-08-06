@@ -37,8 +37,8 @@ export const PaymentModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-800/50 rounded-3xl shadow-2xl text-white p-5 sm:p-6 space-y-5 my-auto custom-scrollbar">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-[#120a21] border border-purple-800/50 rounded-3xl shadow-2xl text-white p-5 sm:p-6 pb-8 sm:pb-6 space-y-5 my-auto custom-scrollbar">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
