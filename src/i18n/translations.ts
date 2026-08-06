@@ -35,7 +35,7 @@ export const translations = {
 
     // Discovery / Matches
     discovery: {
-      title: 'პადელის მატჩები',
+      title: 'ღია მატჩები',
       cityBadge: 'თბილისი',
       subtitle: 'შეუერთდი სასურველ მატჩს და ითამაშე პადელი მარტივად!',
       refundBanner: '100% თანხის დაბრუნება არ შევსებულ თამაშზე',
