@@ -85,7 +85,7 @@ const MainContent: React.FC = () => {
               referrerPolicy="no-referrer"
               className="w-7 h-7 rounded-full object-cover border border-purple-400/40 shadow-md" 
             />
-            <span className="font-black text-white text-sm tracking-wider uppercase font-anta">PADELY.GE</span>
+            <span className="font-normal text-white text-sm tracking-wider uppercase font-fugaz">PADELY</span>
             <span className="text-purple-400/80">— Organized Padel Matches in Georgia</span>
           </div>
 
