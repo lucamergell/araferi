@@ -119,7 +119,7 @@ export const AdminDashboardView: React.FC = () => {
           </div>
           <div className="p-4 rounded-2xl bg-red-950/30 border border-red-800/30 text-xs text-purple-200/90 text-left space-y-2">
             <p>
-              Only <strong className="text-white">luca.mergell@gmail.com</strong> has permission to access the Padely Admin Panel.
+              You do not have permission to access the Padely Admin Panel.
             </p>
             <p className="text-purple-300/70 text-[11px]">
               Currently logged in as: <span className="text-amber-300 font-mono font-bold">{loggedInEmail}</span>
