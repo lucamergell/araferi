@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { X, ShieldCheck, Building2, Banknote, Copy, Check, ArrowRight } from 'lucide-react';
@@ -17,6 +17,17 @@ export const PaymentModal: React.FC = () => {
   const [showBankSubModal, setShowBankSubModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
+
+  const isOfficial = Boolean(
+    activeMatchForPayment?.category === 'official' || activeMatchForPayment?.createdByAdminId
+  );
+
+  useEffect(() => {
+    if (activeMatchForPayment && !isOfficial) {
+      setPaymentOption('Pay on Court');
+      setShowBankSubModal(false);
+    }
+  }, [activeMatchForPayment, isOfficial]);
 
   if (!isPaymentModalOpen || !activeMatchForPayment) return null;
 
@@ -108,31 +119,33 @@ export const PaymentModal: React.FC = () => {
               </p>
             </div>
 
-            {/* Option 2: Transfer with Bank of Georgia Button */}
-            <button
-              onClick={() => {
-                setPaymentOption('Bank Transfer');
-                setShowBankSubModal(true);
-              }}
-              className="w-full p-4 rounded-2xl bg-gradient-to-r from-orange-950/60 via-purple-950/80 to-purple-900/50 hover:from-orange-900/60 hover:to-purple-800/60 border border-orange-500/40 text-left transition-all cursor-pointer flex items-center justify-between shadow-lg active:scale-[0.99] group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/40 shrink-0">
-                  <Building2 className="w-5 h-5" />
+            {/* Option 2: Transfer with Bank of Georgia Button (Official Matches Only) */}
+            {isOfficial && (
+              <button
+                onClick={() => {
+                  setPaymentOption('Bank Transfer');
+                  setShowBankSubModal(true);
+                }}
+                className="w-full p-4 rounded-2xl bg-gradient-to-r from-orange-950/60 via-purple-950/80 to-purple-900/50 hover:from-orange-900/60 hover:to-purple-800/60 border border-orange-500/40 text-left transition-all cursor-pointer flex items-center justify-between shadow-lg active:scale-[0.99] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/40 shrink-0">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-amber-200 block group-hover:text-amber-100 transition-colors">
+                      {t.paymentModal.bankTransferBtn}
+                    </span>
+                    <span className="text-[11px] text-purple-300/70">
+                      {t.paymentModal.clickToViewIban}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-black text-amber-200 block group-hover:text-amber-100 transition-colors">
-                    {t.paymentModal.bankTransferBtn}
-                  </span>
-                  <span className="text-[11px] text-purple-300/70">
-                    {t.paymentModal.clickToViewIban}
-                  </span>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-orange-300 bg-orange-950/80 border border-orange-500/40 px-3 py-1.5 rounded-xl shrink-0 group-hover:bg-orange-900/80">
-                IBAN 📋
-              </span>
-            </button>
+                <span className="text-xs font-bold text-orange-300 bg-orange-950/80 border border-orange-500/40 px-3 py-1.5 rounded-xl shrink-0 group-hover:bg-orange-900/80">
+                  IBAN 📋
+                </span>
+              </button>
+            )}
 
           </div>
         </div>
