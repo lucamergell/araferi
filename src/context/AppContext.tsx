@@ -589,6 +589,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const isPlayerCategory = newMatchData.category === 'player';
     const creatorUser = currentUser;
 
+    const userEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
+    const isAdmin = userEmail === 'luca.mergell@gmail.com' || currentUser?.role === 'admin';
+
+    if (!isAdmin) {
+      const activeCreatedMatches = matches.filter(m => {
+        if (m.status === 'Cancelled' || m.status === 'Completed') return false;
+        return Boolean(
+          (m.creatorId && m.creatorId === currentUser?.id) ||
+          (m.createdByAdminId && m.createdByAdminId === currentUser?.id) ||
+          (firebaseUser && m.creatorId === firebaseUser.uid) ||
+          (m.creatorName && currentUser?.name && m.creatorName.trim().toLowerCase() === currentUser.name.trim().toLowerCase())
+        );
+      });
+
+      if (activeCreatedMatches.length >= 1) {
+        const lang = localStorage.getItem('padely_language') || 'ka';
+        showNotification(
+          lang === 'ka'
+            ? 'თქვენ უკვე გაქვთ 1 აქტიური მატჩი შექმნილი. ახალი მატჩის შესაქმნელად ჯერ დაასრულეთ ან გააუქმეთ არსებული მატჩი.'
+            : 'You can only have 1 active open match created at a time. Please cancel or complete your existing match first.',
+          'error'
+        );
+        return;
+      }
+    }
+
     // For player matches, creator automatically joins as the first player
     let initialJoined = newMatchData.joinedUserIds || [];
     if (isPlayerCategory && creatorUser && !initialJoined.includes(creatorUser.id)) {

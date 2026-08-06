@@ -19,7 +19,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   initialSelectedCourtId,
   defaultCategory,
 }) => {
-  const { createMatch, updateMatch, courts, currentUser, firebaseUser } = useApp();
+  const { createMatch, updateMatch, courts, currentUser, firebaseUser, matches } = useApp();
   const { language, t } = useLanguage();
 
   const userEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
@@ -119,6 +119,24 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         errors.phone = language === 'ka' 
           ? 'გთხოვთ დაეთანხმოთ პირობას ტელეფონის ნომრის გამოჩენის შესახებ!' 
           : 'You must check the agreement to display your phone number on Padely.ge!';
+      }
+    }
+
+    if (!matchToEdit && !isAdmin) {
+      const activeCreatedMatches = matches.filter(m => {
+        if (m.status === 'Cancelled' || m.status === 'Completed') return false;
+        return Boolean(
+          (m.creatorId && m.creatorId === currentUser?.id) ||
+          (m.createdByAdminId && m.createdByAdminId === currentUser?.id) ||
+          (firebaseUser && m.creatorId === firebaseUser.uid) ||
+          (m.creatorName && currentUser?.name && m.creatorName.trim().toLowerCase() === currentUser.name.trim().toLowerCase())
+        );
+      });
+
+      if (activeCreatedMatches.length >= 1) {
+        errors.general = language === 'ka'
+          ? 'თქვენ უკვე გაქვთ 1 აქტიური მატჩი შექმნილი. ახალი მატჩის შესაქმნელად ჯერ დაასრულეთ ან გააუქმეთ არსებული მატჩი!'
+          : 'You can only have 1 active open match created at a time. Please cancel or complete your existing match first!';
       }
     }
 
