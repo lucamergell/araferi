@@ -3,10 +3,11 @@ import { useApp } from '../context/AppContext';
 import { CreateMatchModal } from './CreateMatchModal';
 import { AdminEditPlayerModal } from './AdminEditPlayerModal';
 import { ConfirmMatchResultModal } from './ConfirmMatchResultModal';
-import { Match, User } from '../types';
+import { AdminEditCourtModal } from './AdminEditCourtModal';
+import { Match, User, Court } from '../types';
 import { 
   Shield, Plus, DollarSign, Calendar, Users, TrendingUp, Edit, Trash2, 
-  Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw, Power
+  Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw, Power, Building, Navigation
 } from 'lucide-react';
 import { formatDateDDMMYYYY } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
@@ -17,6 +18,8 @@ export const AdminDashboardView: React.FC = () => {
     matches, 
     users, 
     payments, 
+    courts,
+    deleteCourt,
     cancelMatch, 
     activateMatch,
     deactivateMatch,
@@ -40,7 +43,7 @@ export const AdminDashboardView: React.FC = () => {
   const loggedInEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
   const isAuthorizedAdmin = loggedInEmail === ADMIN_EMAIL;
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'matches' | 'players' | 'payments'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'matches' | 'players' | 'payments' | 'courts'>('analytics');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | undefined>(undefined);
   const [editingPlayerUser, setEditingPlayerUser] = useState<User | null>(null);
@@ -48,6 +51,10 @@ export const AdminDashboardView: React.FC = () => {
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
   const [assignPlayerForMatch, setAssignPlayerForMatch] = useState<{ [matchId: string]: string }>({});
   const [assignMatchForPlayer, setAssignMatchForPlayer] = useState<{ [userId: string]: string }>({});
+
+  const [isEditCourtModalOpen, setIsEditCourtModalOpen] = useState(false);
+  const [editingCourt, setEditingCourt] = useState<Court | undefined>(undefined);
+  const [selectedCourtForNewMatch, setSelectedCourtForNewMatch] = useState<string | undefined>(undefined);
 
   const [matchSearch, setMatchSearch] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
@@ -259,6 +266,16 @@ export const AdminDashboardView: React.FC = () => {
           >
             <DollarSign className="w-4 h-4" />
             <span>Payments & Refunds ({payments.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('courts')}
+            className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+              activeTab === 'courts' ? 'bg-amber-600 text-white shadow-lg' : 'text-purple-300/70 hover:text-white'
+            }`}
+          >
+            <Building className="w-4 h-4" />
+            <span>Pre-Made Courts ({courts.length})</span>
           </button>
         </div>
 
@@ -829,13 +846,146 @@ export const AdminDashboardView: React.FC = () => {
           </div>
         )}
 
+        {/* TAB 5: Pre-Made Courts Management */}
+        {activeTab === 'courts' && (
+          <div className="space-y-4 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-[#120a21] rounded-2xl border border-purple-900/40">
+              <div>
+                <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                  <Building className="w-4 h-4 text-amber-400" />
+                  <span>Pre-Made Padel Courts / Stadiums</span>
+                </h3>
+                <p className="text-[11px] text-purple-300/70">
+                  Pre-configure venues with addresses, maps, default prices & pictures to create matches in 1 click!
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingCourt(undefined);
+                  setIsEditCourtModalOpen(true);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold flex items-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Pre-Made Court</span>
+              </button>
+            </div>
+
+            {courts.length === 0 ? (
+              <div className="p-8 text-center bg-[#120a21] rounded-2xl border border-purple-900/30 text-purple-300/70">
+                No pre-made courts yet. Click "Add Pre-Made Court" to create your first venue.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {courts.map((court) => (
+                  <div key={court.id} className="bg-[#120a21] border border-purple-900/40 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between">
+                    <div>
+                      {/* Image Banner */}
+                      <div className="relative h-36 w-full bg-purple-950">
+                        <img 
+                          src={court.imageUrl || 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&q=80&w=800'} 
+                          alt={court.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#120a21] via-transparent to-black/30" />
+                        <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-amber-300 border border-amber-500/40 font-bold px-2.5 py-0.5 rounded-full text-[10px]">
+                          📍 {court.district}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="font-bold text-white text-sm">{court.nameKa || court.name}</h4>
+                            <p className="text-[11px] text-purple-300/70">{court.nameEn || court.name}</p>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-purple-300/80 flex items-center gap-1">
+                          <Navigation className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span className="truncate">{court.addressKa || court.address}</span>
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-purple-900/30 text-[11px]">
+                          <div className="p-2 bg-purple-950/40 rounded-xl border border-purple-800/30">
+                            <span className="block text-[9px] text-purple-300/60 font-semibold">Default Court Cost</span>
+                            <span className="font-bold text-white">{court.defaultCourtCostGel || 80} GEL</span>
+                          </div>
+                          <div className="p-2 bg-purple-950/40 rounded-xl border border-purple-800/30">
+                            <span className="block text-[9px] text-purple-300/60 font-semibold">Price per Player</span>
+                            <span className="font-bold text-emerald-400">{court.defaultPricePerPlayerGel || 25} GEL</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-3 bg-purple-950/30 border-t border-purple-900/30 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedCourtForNewMatch(court.id);
+                          setEditingMatch(undefined);
+                          setIsCreateModalOpen(true);
+                        }}
+                        className="flex-1 py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Create Match Here</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setEditingCourt(court);
+                          setIsEditCourtModalOpen(true);
+                        }}
+                        className="p-2 rounded-xl bg-purple-900/50 hover:bg-purple-800/60 text-purple-200 border border-purple-700/40 transition-colors"
+                        title="Edit Court"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete pre-made court "${court.nameKa || court.name}"?`)) {
+                            deleteCourt(court.id);
+                          }
+                        }}
+                        className="p-2 rounded-xl bg-red-950/50 hover:bg-red-900/60 text-red-300 border border-red-800/40 transition-colors"
+                        title="Delete Court"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* Create / Edit Match Modal */}
       {isCreateModalOpen && (
         <CreateMatchModal
           matchToEdit={editingMatch}
-          onClose={() => setIsCreateModalOpen(false)}
+          initialSelectedCourtId={selectedCourtForNewMatch}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            setSelectedCourtForNewMatch(undefined);
+          }}
+        />
+      )}
+
+      {/* Admin Edit Pre-Made Court Modal */}
+      {isEditCourtModalOpen && (
+        <AdminEditCourtModal
+          courtToEdit={editingCourt}
+          onClose={() => {
+            setIsEditCourtModalOpen(false);
+            setEditingCourt(undefined);
+          }}
         />
       )}
 

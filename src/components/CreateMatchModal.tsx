@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Match, SkillLevel } from '../types';
-import { X, Calendar, Clock, MapPin, Plus, DollarSign, Globe, Image as ImageIcon, Link as LinkIcon, Sparkles, Navigation, Trash2 } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Plus, DollarSign, Globe, Image as ImageIcon, Link as LinkIcon, Sparkles, Navigation, Trash2, Building } from 'lucide-react';
 import { formatDateDDMMYYYY, getLocalizedDayOfWeek } from '../utils/formatters';
 
 const PRESET_BANNERS = [
@@ -15,11 +15,14 @@ const PRESET_BANNERS = [
 interface CreateMatchModalProps {
   onClose: () => void;
   matchToEdit?: Match;
+  initialSelectedCourtId?: string;
 }
 
-export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, matchToEdit }) => {
-  const { createMatch, updateMatch } = useApp();
+export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, matchToEdit, initialSelectedCourtId }) => {
+  const { createMatch, updateMatch, courts } = useApp();
   const { t } = useLanguage();
+
+  const [selectedCourtId, setSelectedCourtId] = useState<string>(initialSelectedCourtId || '');
 
   const [titleKa, setTitleKa] = useState(matchToEdit?.titleKa || matchToEdit?.title || t.createMatchModal.defaultTitleKa);
   const [titleEn, setTitleEn] = useState(matchToEdit?.titleEn || matchToEdit?.title || t.createMatchModal.defaultTitleEn);
@@ -44,6 +47,29 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
   const [googleMapsUrl, setGoogleMapsUrl] = useState(matchToEdit?.googleMapsUrl || '');
   const [galleryImageUrls, setGalleryImageUrls] = useState<string[]>(matchToEdit?.galleryImageUrls || []);
   const [newGalleryInput, setNewGalleryInput] = useState('');
+
+  const handleSelectCourt = (courtId: string) => {
+    setSelectedCourtId(courtId);
+    const selected = courts.find(c => c.id === courtId);
+    if (!selected) return;
+
+    const courtNameKa = selected.nameKa || selected.name;
+    const courtNameEn = selected.nameEn || selected.name;
+
+    setLocationNameKa(courtNameKa);
+    setLocationNameEn(courtNameEn);
+    setTitleKa(`${courtNameKa} - თამაში`);
+    setTitleEn(`${courtNameEn} Match`);
+    setAddress(selected.addressKa || selected.address);
+    setDistrict(selected.district || 'Lisi');
+    if (selected.googleMapsUrl) setGoogleMapsUrl(selected.googleMapsUrl);
+    if (selected.imageUrl) setImageUrl(selected.imageUrl);
+    if (selected.galleryImageUrls && selected.galleryImageUrls.length > 0) {
+      setGalleryImageUrls(selected.galleryImageUrls);
+    }
+    if (selected.defaultCourtCostGel) setCourtCostGel(selected.defaultCourtCostGel);
+    if (selected.defaultPricePerPlayerGel) setPricePerPlayerGel(selected.defaultPricePerPlayerGel);
+  };
 
   const handleAddGalleryImage = () => {
     if (!newGalleryInput.trim()) return;
@@ -123,6 +149,47 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ onClose, mat
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           
+          {/* Quick Select Pre-Made Stadium / Court */}
+          <div className="p-3.5 bg-gradient-to-r from-amber-950/40 via-purple-950/40 to-amber-950/40 rounded-2xl border border-amber-500/40 space-y-2.5 shadow-lg">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                <Building className="w-4 h-4 text-amber-400" />
+                <span>აირჩიე სტადიონი / Pre-Made Stadium</span>
+              </label>
+              <span className="text-[10px] text-amber-300/80 font-semibold bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-600/30">
+                1-Click Auto-Fill
+              </span>
+            </div>
+
+            {courts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {courts.map((court) => {
+                  const isSelected = selectedCourtId === court.id || locationNameKa === (court.nameKa || court.name);
+                  return (
+                    <button
+                      key={court.id}
+                      type="button"
+                      onClick={() => handleSelectCourt(court.id)}
+                      className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between h-full ${
+                        isSelected
+                          ? 'bg-amber-600/30 border-amber-400 text-white shadow-md ring-2 ring-amber-400/50'
+                          : 'bg-purple-950/50 hover:bg-purple-900/60 border-purple-800/40 text-purple-200'
+                      }`}
+                    >
+                      <div className="font-bold text-[11px] line-clamp-1">{court.nameKa || court.name}</div>
+                      <div className="text-[9px] text-purple-300/80 flex items-center justify-between mt-1 pt-1 border-t border-purple-900/40">
+                        <span>📍 {court.district}</span>
+                        <span className="font-bold text-emerald-400">{court.defaultPricePerPlayerGel || 25}₾</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-[11px] text-purple-300/70">No pre-made courts found in system.</p>
+            )}
+          </div>
+
           {/* Match Title (Bilingual) */}
           <div className="p-3 bg-purple-950/20 rounded-2xl border border-purple-800/30 space-y-2">
             <div className="text-xs font-bold text-purple-300 flex items-center gap-1">

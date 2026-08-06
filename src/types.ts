@@ -106,6 +106,23 @@ export interface PaymentRecord {
   createdAt: string;
 }
 
+export interface Court {
+  id: string;
+  name: string;
+  nameKa?: string;
+  nameEn?: string;
+  address: string;
+  addressKa?: string;
+  addressEn?: string;
+  district: string;
+  googleMapsUrl?: string;
+  imageUrl?: string;
+  galleryImageUrls?: string[];
+  defaultCourtCostGel?: number;
+  defaultPricePerPlayerGel?: number;
+  createdAt: string;
+}
+
 export interface FilterState {
   district: string;
   skillLevel: string;

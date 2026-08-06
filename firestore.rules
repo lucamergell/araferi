@@ -42,5 +42,11 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if true;
     }
+
+    // Courts / Venues Collection
+    match /courts/{courtId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
   }
 }

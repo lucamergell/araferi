@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Match, PaymentRecord, PlayerStats, SkillLevel, PlayingPosition } from '../types';
-import { INITIAL_USERS, INITIAL_MATCHES, INITIAL_PAYMENTS } from '../data/initialData';
+import { User, Match, PaymentRecord, PlayerStats, SkillLevel, PlayingPosition, Court } from '../types';
+import { INITIAL_USERS, INITIAL_MATCHES, INITIAL_PAYMENTS, INITIAL_COURTS } from '../data/initialData';
 import { auth, db, googleProvider } from '../lib/firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseError';
 
 export type AppView = 'landing' | 'discovery' | 'profile' | 'rankings' | 'admin' | 'dashboard' | 'terms' | 'privacy';
@@ -16,6 +16,7 @@ interface AppContextType {
   users: User[];
   matches: Match[];
   payments: PaymentRecord[];
+  courts: Court[];
   currentView: AppView;
   selectedMatchId: string | null;
   selectedProfileUserId: string | null;
@@ -53,6 +54,11 @@ interface AppContextType {
   updatePlayerStats: (userId: string, newStats: Partial<PlayerStats>) => void;
   updatePlayerProfile: (userId: string, updatedProfile: Partial<User>) => void;
   
+  // Pre-Made Courts Actions
+  createCourt: (courtData: Omit<Court, 'id' | 'createdAt'>) => Promise<void>;
+  updateCourt: (courtId: string, updatedFields: Partial<Court>) => Promise<void>;
+  deleteCourt: (courtId: string) => Promise<void>;
+  
   // Placeholder Management Actions
   addPlaceholderPlayer: (matchId: string) => Promise<void>;
   fillMatchWithPlaceholders: (matchId: string) => Promise<void>;
@@ -70,6 +76,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [matches, setMatches] = useState<Match[]>(INITIAL_MATCHES);
   const [payments, setPayments] = useState<PaymentRecord[]>(INITIAL_PAYMENTS);
+  const [courts, setCourts] = useState<Court[]>(INITIAL_COURTS);
 
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -294,6 +301,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'payments');
+      }
+    );
+    return () => unsub();
+  }, []);
+
+  // Firestore Real-time listener for COURTS
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, 'courts'),
+      async (snapshot) => {
+        if (snapshot.empty) {
+          // Auto-seed initial courts if collection is empty
+          for (const court of INITIAL_COURTS) {
+            try {
+              await setDoc(doc(db, 'courts', court.id), court);
+            } catch (e) {
+              console.error('Failed seeding court:', e);
+            }
+          }
+        } else {
+          const loadedCourts: Court[] = [];
+          snapshot.forEach(docSnap => {
+            loadedCourts.push(docSnap.data() as Court);
+          });
+          setCourts(loadedCourts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'courts');
       }
     );
     return () => unsub();
@@ -1174,6 +1210,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showNotification('Cleared dataset!', 'info');
   };
 
+  const createCourt = async (courtData: Omit<Court, 'id' | 'createdAt'>) => {
+    const courtId = `court_${Date.now()}`;
+    const newCourt: Court = {
+      ...courtData,
+      id: courtId,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      await setDoc(doc(db, 'courts', courtId), newCourt);
+      showNotification('Pre-made court created successfully!', 'success');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `courts/${courtId}`);
+    }
+  };
+
+  const updateCourt = async (courtId: string, updatedFields: Partial<Court>) => {
+    try {
+      await updateDoc(doc(db, 'courts', courtId), updatedFields);
+      showNotification('Court details updated!', 'success');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `courts/${courtId}`);
+    }
+  };
+
+  const deleteCourt = async (courtId: string) => {
+    try {
+      await deleteDoc(doc(db, 'courts', courtId));
+      showNotification('Court deleted!', 'info');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `courts/${courtId}`);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1184,6 +1253,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         users,
         matches,
         payments,
+        courts,
         currentView,
         selectedMatchId,
         selectedProfileUserId,
@@ -1217,6 +1287,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         updatePlayerStats,
         updatePlayerProfile,
+        
+        createCourt,
+        updateCourt,
+        deleteCourt,
         
         addPlaceholderPlayer,
         fillMatchWithPlaceholders,
