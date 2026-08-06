@@ -18,9 +18,7 @@ export const PaymentModal: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
 
-  const isOfficial = Boolean(
-    activeMatchForPayment?.category === 'official' || activeMatchForPayment?.createdByAdminId
-  );
+  const isOfficial = activeMatchForPayment?.category === 'official';
 
   useEffect(() => {
     if (activeMatchForPayment && !isOfficial) {
