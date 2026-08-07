@@ -131,6 +131,7 @@ export const AdminEditCourtModal: React.FC<AdminEditCourtModalProps> = ({ courtT
                   <option value="Saburtalo">Saburtalo (საბურთალო)</option>
                   <option value="Vake">Vake (ვაკე)</option>
                   <option value="Dighomi">Dighomi (დიღომი)</option>
+                  <option value="Gldani">Gldani (გლდანი)</option>
                   <option value="Mtatsminda">Mtatsminda (მთაწმინდა)</option>
                   <option value="Marjanishvili">Marjanishvili (მარჯანიშვილი)</option>
                 </select>

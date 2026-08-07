@@ -91,6 +91,7 @@ export const OfficialMatchesView: React.FC = () => {
               <option value="Vake">Vake (ვაკე)</option>
               <option value="Saburtalo">Saburtalo (საბურთალო)</option>
               <option value="Dighomi">Dighomi (დიღომი)</option>
+              <option value="Gldani">Gldani (გლდანი)</option>
             </select>
 
             <select
