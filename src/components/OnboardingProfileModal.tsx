@@ -102,7 +102,7 @@ export const OnboardingProfileModal: React.FC = () => {
     });
 
     showNotification(language === 'ka' ? 'პროფილი წარმატებით განახლდა!' : 'Profile updated successfully!', 'success');
-    setCurrentView('discovery');
+    setCurrentView('landing');
   };
 
   return (
