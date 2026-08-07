@@ -8,7 +8,10 @@ export const PaymentModal: React.FC = () => {
     isPaymentModalOpen, 
     activeMatchForPayment, 
     closePaymentModal, 
-    confirmJoinMatch 
+    confirmJoinMatch,
+    users,
+    currentUser,
+    firebaseUser
   } = useApp();
 
   const { t } = useLanguage();
@@ -18,14 +21,24 @@ export const PaymentModal: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
 
-  const isOfficial = activeMatchForPayment?.category === 'official';
+  const creatorUser = activeMatchForPayment ? users.find(u => u.id === activeMatchForPayment.creatorId || u.id === activeMatchForPayment.createdByAdminId) : null;
+  const isCreatorAdmin = creatorUser ? (creatorUser.role === 'admin' || creatorUser.email?.toLowerCase() === 'luca.mergell@gmail.com') : false;
+
+  const isAdminCreatedOrOfficial = Boolean(
+    activeMatchForPayment && (
+      activeMatchForPayment.category === 'official' ||
+      isCreatorAdmin ||
+      (activeMatchForPayment.createdByAdminId && activeMatchForPayment.createdByAdminId !== 'usr_admin') ||
+      (currentUser && (currentUser.role === 'admin' || (firebaseUser?.email || currentUser.email)?.toLowerCase() === 'luca.mergell@gmail.com') && (activeMatchForPayment.creatorId === currentUser.id || activeMatchForPayment.createdByAdminId === currentUser.id))
+    )
+  );
 
   useEffect(() => {
-    if (activeMatchForPayment && !isOfficial) {
+    if (activeMatchForPayment && !isAdminCreatedOrOfficial) {
       setPaymentOption('Pay on Court');
       setShowBankSubModal(false);
     }
-  }, [activeMatchForPayment, isOfficial]);
+  }, [activeMatchForPayment, isAdminCreatedOrOfficial]);
 
   if (!isPaymentModalOpen || !activeMatchForPayment) return null;
 
@@ -117,8 +130,8 @@ export const PaymentModal: React.FC = () => {
               </p>
             </div>
 
-            {/* Option 2: Transfer with Bank of Georgia Button (Official Matches Only) */}
-            {isOfficial && (
+            {/* Option 2: Transfer with Bank of Georgia Button (Admin Created & Official Matches Only) */}
+            {isAdminCreatedOrOfficial && (
               <button
                 onClick={() => {
                   setPaymentOption('Bank Transfer');
