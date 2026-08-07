@@ -49,7 +49,7 @@ export const LandingView: React.FC = () => {
         {/* Background Image with Gradient Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
-            src="/websitebgpadely.png"
+            src="/websitepgpadely.png"
             alt="Padely Background"
             className="w-full h-full object-cover object-center opacity-85 saturate-110 filter brightness-105"
           />
