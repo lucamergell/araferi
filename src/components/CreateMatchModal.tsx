@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Match, SkillLevel, MatchCategory, MatchType } from '../types';
-import { X, Calendar, Clock, MapPin, Building, Phone, ShieldCheck, CheckCircle2, User as UserIcon, Award } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Building, Phone, ShieldCheck, CheckCircle2, User as UserIcon, Award, Pencil } from 'lucide-react';
 import { formatDateDDMMYYYY, getLocalizedDayOfWeek } from '../utils/formatters';
 
 interface CreateMatchModalProps {
@@ -38,6 +38,9 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   const initialCourt = courts.find(c => c.id === selectedCourtId) || courts[0];
 
   const [date, setDate] = useState(matchToEdit?.date || new Date().toISOString().split('T')[0]);
+  const [matchTitleInput, setMatchTitleInput] = useState<string>(
+    matchToEdit?.title || ''
+  );
   const [startTime, setStartTime] = useState(matchToEdit?.startTime || '18:30');
   const [durationMinutes, setDurationMinutes] = useState<number>(matchToEdit?.durationMinutes || 90);
   const [totalSpots, setTotalSpots] = useState<number>(matchToEdit?.totalSpots || 4);
@@ -155,16 +158,20 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
     const dayKa = getLocalizedDayOfWeek(date, 'ka');
     const dayEn = getLocalizedDayOfWeek(date, 'en');
 
-    const matchNameKa = `${court.nameKa || court.name} - ${matchType === 'Friendly' ? 'ამხანაგური' : matchType === 'Competitive' ? 'სარეიტინგო' : 'ვარჯიში'}`;
-    const matchNameEn = `${court.nameEn || court.name} - ${matchType}`;
+    const autoMatchNameKa = `${court.nameKa || court.name} - ${matchType === 'Friendly' ? 'ამხანაგური' : matchType === 'Competitive' ? 'სარეიტინგო' : 'ვარჯიში'}`;
+    const autoMatchNameEn = `${court.nameEn || court.name} - ${matchType}`;
+
+    const trimmedCustomTitle = matchTitleInput.trim();
+    const finalTitleKa = trimmedCustomTitle || autoMatchNameKa;
+    const finalTitleEn = trimmedCustomTitle || autoMatchNameEn;
 
     const matchPayload: Partial<Match> = {
       category,
       matchType,
       courtId: court.id,
-      title: matchNameEn,
-      titleKa: matchNameKa,
-      titleEn: matchNameEn,
+      title: finalTitleEn,
+      titleKa: finalTitleKa,
+      titleEn: finalTitleEn,
       locationName: court.name,
       locationNameKa: court.nameKa || court.name,
       locationNameEn: court.nameEn || court.name,
@@ -270,6 +277,26 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* MATCH TITLE FIELD */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-purple-200 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Pencil className="w-4 h-4 text-purple-400" />
+                <span>{language === 'ka' ? 'მატჩის დასახელება (არასავალდებულო)' : 'Match Title (Optional)'}</span>
+              </span>
+              <span className="text-[10px] text-purple-400/80 font-normal">
+                {language === 'ka' ? 'თუ ცარიელს დატოვებთ, გენერირდება ავტომატურად' : 'Default generated if blank'}
+              </span>
+            </label>
+            <input
+              type="text"
+              value={matchTitleInput}
+              onChange={e => setMatchTitleInput(e.target.value)}
+              placeholder={language === 'ka' ? 'მაგ: შაბათის ტურნირი, 2v2 ამხანაგური...' : 'e.g., Saturday Tournament, Friendly 2v2...'}
+              className="w-full px-3 py-2.5 bg-purple-950/60 border border-purple-800/40 rounded-xl text-white font-semibold placeholder:text-purple-400/40 focus:outline-none focus:border-purple-500 text-xs"
+            />
+          </div>
 
           {/* 1. COURT SELECTION SYSTEM (Strict Premade Courts) */}
           <div className="space-y-2">

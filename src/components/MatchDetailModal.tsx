@@ -157,7 +157,7 @@ export const MatchDetailModal: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-1.5 sm:gap-3">
               <div className="min-w-0 flex-1">
-                <h2 className="text-xl sm:text-3xl font-black text-white leading-tight truncate">
+                <h2 className="text-xl sm:text-2xl font-black text-white leading-snug break-words whitespace-normal">
                   {localized.title}
                 </h2>
                 <p className="text-[11px] sm:text-xs text-purple-200/90 font-medium flex items-center gap-1 mt-0.5 truncate">
