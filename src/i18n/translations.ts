@@ -21,8 +21,8 @@ export const translations = {
     // Hero / Landing
     landing: {
       badge: 'საიტი მუშაობს სატესტო რეჟიმში',
-      titleLine1: 'შექმენი ან შეუერთდი',
-      titleLine2: 'პადელის მატჩებს',
+      titleLine1: 'იპოვე შენი შემდეგი',
+      titleLine2: 'პადელის მატჩი',
       subtitle: 'უკვე აღარ გჭირდება 4 კაცის შეკრება. იპოვე სასურველი მატჩი, შეუერთდი და მოდი კორტზე!',
       browseBtn: 'ყველა მატჩი',
       rankingsBtn: 'ლიდერბორდი',
