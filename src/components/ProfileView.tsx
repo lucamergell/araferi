@@ -92,6 +92,15 @@ export const ProfileView: React.FC = () => {
                     </>
                   ) : null}
                   <span className="text-emerald-400 font-bold">{t.profile.ratingLabel}: {stats.padelyPoints ?? stats.skillRating ?? 1000} PP</span>
+                  {profileUser.createdAt && (
+                    <>
+                      <span>•</span>
+                      <span className="text-amber-300 flex items-center gap-1 font-medium">
+                        <Calendar className="w-3 h-3 text-amber-400 inline" />
+                        Member since {new Date(profileUser.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>

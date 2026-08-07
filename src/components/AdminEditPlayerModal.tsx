@@ -74,6 +74,11 @@ export const AdminEditPlayerModal: React.FC<AdminEditPlayerModalProps> = ({ user
             <div>
               <h3 className="text-base font-black text-white">Edit Player Profile</h3>
               <p className="text-xs text-amber-300/80">{name} ({email})</p>
+              {user.createdAt && (
+                <p className="text-[10px] text-purple-300/80 mt-0.5 font-medium">
+                  Registered: {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
             </div>
           </div>
 

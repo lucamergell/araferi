@@ -258,7 +258,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       (snapshot) => {
         const loadedUsers: User[] = [];
         snapshot.forEach(docSnap => {
-          loadedUsers.push(docSnap.data() as User);
+          const uData = docSnap.data() as User;
+          if (!uData.createdAt) {
+            uData.createdAt = new Date().toISOString();
+          }
+          loadedUsers.push(uData);
         });
         setUsers(loadedUsers);
         setIsUsersLoaded(true);

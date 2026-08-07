@@ -58,6 +58,24 @@ export const AdminDashboardView: React.FC = () => {
 
   const [matchSearch, setMatchSearch] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
+  const [playerSort, setPlayerSort] = useState<'newest' | 'oldest' | 'matches' | 'points' | 'name'>('newest');
+
+  const formatRegistrationDate = (dateStr?: string) => {
+    if (!dateStr) return 'N/A';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   // 1. Guard: Not Logged In
   if (!loggedInEmail) {
@@ -171,14 +189,43 @@ export const AdminDashboardView: React.FC = () => {
     .sort((a, b) => b.stats.totalMatches - a.stats.totalMatches)
     .slice(0, 4);
 
+  const recentlyRegisteredUsers = [...realUsers]
+    .sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    })
+    .slice(0, 4);
+
   // Filtered lists
   const filteredMatches = matches.filter(m => 
     `${m.title} ${m.locationName} ${m.district}`.toLowerCase().includes(matchSearch.toLowerCase())
   );
 
-  const filteredPlayers = realUsers.filter(u =>
-    `${u.name} ${u.email} ${u.location}`.toLowerCase().includes(playerSearch.toLowerCase())
-  );
+  const filteredPlayers = realUsers
+    .filter(u => `${u.name} ${u.email} ${u.location}`.toLowerCase().includes(playerSearch.toLowerCase()))
+    .sort((a, b) => {
+      if (playerSort === 'newest') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+      }
+      if (playerSort === 'oldest') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeA - timeB;
+      }
+      if (playerSort === 'matches') {
+        return (b.stats?.totalMatches || 0) - (a.stats?.totalMatches || 0);
+      }
+      if (playerSort === 'points') {
+        return (b.stats?.padelyPoints ?? b.stats?.skillRating ?? 1000) - (a.stats?.padelyPoints ?? a.stats?.skillRating ?? 1000);
+      }
+      if (playerSort === 'name') {
+        return a.name.localeCompare(b.name);
+      }
+      return 0;
+    });
 
   return (
     <div className="min-h-screen text-white py-8 px-4 sm:px-6 lg:px-8 pb-24">
@@ -364,13 +411,13 @@ export const AdminDashboardView: React.FC = () => {
               </div>
             </div>
 
-            {/* Economics Explanation & Most Active Players */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Business Mechanics, Most Active Players & Recently Registered */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               <div className="p-5 rounded-3xl bg-[#120a21] border border-purple-900/40 space-y-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-amber-400" />
-                  <span>Padely Business Model Mechanics</span>
+                  <span>Padely Business Mechanics</span>
                 </h3>
 
                 <p className="text-xs text-purple-200/80 leading-relaxed">
@@ -407,18 +454,56 @@ export const AdminDashboardView: React.FC = () => {
                       onClick={() => openUserProfile(player.id)}
                       className="p-2.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/40 border border-purple-800/30 flex items-center justify-between cursor-pointer text-xs"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-bold text-amber-400 w-4">#{idx + 1}</span>
-                        <UserAvatar name={player.name} userId={player.id} className="w-8 h-8 rounded-lg text-xs font-bold" />
-                        <div>
-                          <div className="font-bold text-white">{player.name}</div>
-                          <div className="text-[10px] text-purple-300/70">{player.location}</div>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="font-bold text-amber-400 w-4 shrink-0">#{idx + 1}</span>
+                        <UserAvatar name={player.name} userId={player.id} className="w-8 h-8 rounded-lg text-xs font-bold shrink-0" />
+                        <div className="truncate">
+                          <div className="font-bold text-white truncate">{player.name}</div>
+                          <div className="text-[10px] text-purple-300/70 truncate">{player.location}</div>
                         </div>
                       </div>
 
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <div className="font-bold text-white">{player.stats.totalMatches} matches</div>
                         <div className="text-[10px] text-emerald-400">{player.stats.padelyPoints ?? player.stats.skillRating ?? 1000} PP</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recently Registered Players */}
+              <div className="p-5 rounded-3xl bg-[#120a21] border border-purple-900/40 space-y-3">
+                <h3 className="text-sm font-bold text-white flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-emerald-400" />
+                    <span>Recent Registrations</span>
+                  </span>
+                  <span className="text-[10px] text-purple-300/80 font-normal">
+                    Latest {recentlyRegisteredUsers.length}
+                  </span>
+                </h3>
+
+                <div className="space-y-2">
+                  {recentlyRegisteredUsers.map((player) => (
+                    <div
+                      key={player.id}
+                      onClick={() => openUserProfile(player.id)}
+                      className="p-2.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/40 border border-purple-800/30 flex items-center justify-between cursor-pointer text-xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <UserAvatar name={player.name} userId={player.id} className="w-8 h-8 rounded-lg text-xs font-bold shrink-0" />
+                        <div className="truncate min-w-0">
+                          <div className="font-bold text-white truncate">{player.name}</div>
+                          <div className="text-[10px] text-purple-300/70 truncate">{player.email}</div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-[10px] font-bold text-amber-300">
+                          {formatRegistrationDate(player.createdAt)}
+                        </div>
+                        <div className="text-[9px] text-purple-300/70">{player.skillLevel}</div>
                       </div>
                     </div>
                   ))}
@@ -700,20 +785,37 @@ export const AdminDashboardView: React.FC = () => {
         {activeTab === 'players' && (
           <div className="space-y-4">
             
-            <div className="relative max-w-sm">
-              <Search className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search player by name, email or district..."
-                value={playerSearch}
-                onChange={e => setPlayerSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-[#120a21] border border-purple-800/40 rounded-xl text-xs text-white"
-              />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search player by name, email or district..."
+                  value={playerSearch}
+                  onChange={e => setPlayerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-[#120a21] border border-purple-800/40 rounded-xl text-xs text-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-purple-300 font-bold shrink-0">Sort By:</span>
+                <select
+                  value={playerSort}
+                  onChange={e => setPlayerSort(e.target.value as any)}
+                  className="px-3 py-2 bg-[#120a21] border border-purple-800/40 rounded-xl text-xs text-amber-300 font-semibold cursor-pointer"
+                >
+                  <option value="newest">Newest Registered First</option>
+                  <option value="oldest">Oldest Registered First</option>
+                  <option value="matches">Most Matches Played</option>
+                  <option value="points">Highest PadelyPoints</option>
+                  <option value="name">Name (A-Z)</option>
+                </select>
+              </div>
             </div>
 
             <div className="bg-[#120a21] rounded-3xl border border-purple-900/40 overflow-hidden text-xs">
               <div className="p-4 bg-purple-950/40 border-b border-purple-900/30 grid grid-cols-12 font-bold text-purple-300 uppercase tracking-wider text-[10px]">
-                <div className="col-span-3">Player Info</div>
+                <div className="col-span-3">Player Info & Reg. Date</div>
                 <div className="col-span-2">Skill & Position</div>
                 <div className="col-span-2">Matches & Wins</div>
                 <div className="col-span-1">PadelyPoints</div>
@@ -733,15 +835,19 @@ export const AdminDashboardView: React.FC = () => {
                       {/* Player Info */}
                       <div 
                         onClick={() => openUserProfile(player.id)}
-                        className="col-span-3 flex items-center gap-2.5 cursor-pointer"
+                        className="col-span-3 flex items-center gap-2.5 cursor-pointer min-w-0"
                       >
                         <UserAvatar name={player.name} userId={player.id} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-purple-600/30 shrink-0" />
-                        <div className="truncate">
+                        <div className="truncate min-w-0">
                           <div className="font-bold text-white flex items-center gap-1 truncate hover:text-purple-300 transition-colors">
                             <span className="truncate">{player.name}</span>
                             {player.role === 'admin' && <span className="text-[9px] text-amber-300 font-bold shrink-0">(Admin)</span>}
                           </div>
                           <div className="text-[10px] text-purple-300/70 truncate">{player.email} • {player.location}</div>
+                          <div className="text-[10px] text-amber-300/90 font-medium flex items-center gap-1 mt-0.5">
+                            <Calendar className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span className="truncate">Reg: {formatRegistrationDate(player.createdAt)}</span>
+                          </div>
                         </div>
                       </div>
 
