@@ -45,7 +45,17 @@ export const LandingView: React.FC = () => {
     <div className="min-h-screen text-white pb-28 sm:pb-24">
       
       {/* Hero Section Header */}
-      <section className="relative overflow-hidden pt-8 pb-6 px-4 sm:px-6 lg:px-8 border-b border-white/10">
+      <section className="relative overflow-hidden pt-12 pb-10 px-4 sm:px-6 lg:px-8 border-b border-purple-500/20">
+        {/* Background Image with Gradient Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <img
+            src="/websitebgpadely.png"
+            alt="Padely Background"
+            className="w-full h-full object-cover object-center opacity-85 saturate-110 filter brightness-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0d061a]/30 via-[#0d061a]/50 to-[#0d061a]"></div>
+        </div>
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-4">
             {/* Main Headline */}
