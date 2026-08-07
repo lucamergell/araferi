@@ -311,42 +311,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const unsub = onSnapshot(
       collection(db, 'courts'),
-      async (snapshot) => {
+      (snapshot) => {
         if (snapshot.empty) {
-          // Auto-seed initial courts if collection is empty
-          setCourts(INITIAL_COURTS);
-          for (const court of INITIAL_COURTS) {
-            try {
-              await setDoc(doc(db, 'courts', court.id), court, { merge: true });
-            } catch (e) {
-              console.error('Failed seeding court to Firestore:', e);
-            }
-          }
+          setCourts([]);
         } else {
           const loadedCourts: Court[] = [];
           snapshot.forEach(docSnap => {
             loadedCourts.push(docSnap.data() as Court);
           });
-
-          // Verify if any premade courts from INITIAL_COURTS are missing and seed them to Firestore
-          const loadedIds = new Set(loadedCourts.map(c => c.id));
-          for (const initialCourt of INITIAL_COURTS) {
-            if (!loadedIds.has(initialCourt.id)) {
-              try {
-                await setDoc(doc(db, 'courts', initialCourt.id), initialCourt, { merge: true });
-                loadedCourts.push(initialCourt);
-              } catch (e) {
-                console.error('Failed seeding missing initial court to Firestore:', e);
-              }
-            }
-          }
-
           setCourts(loadedCourts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         }
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'courts');
-        setCourts(prev => prev.length > 0 ? prev : INITIAL_COURTS);
+        setCourts([]);
       }
     );
     return () => unsub();
