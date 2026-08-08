@@ -17,12 +17,21 @@ import { MatchDetailModal } from './components/MatchDetailModal';
 import { PaymentModal } from './components/PaymentModal';
 import { AuthModal } from './components/AuthModal';
 import { OnboardingProfileModal } from './components/OnboardingProfileModal';
+import { QuickJoinModal } from './components/QuickJoinModal';
 import { AbstractBackgroundAnimation } from './components/AbstractBackgroundAnimation';
 import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 import padelyLogo from './assets/images/Padely.png';
 
 const MainContent: React.FC = () => {
-  const { currentView, setCurrentView, notification } = useApp();
+  const { 
+    currentView, 
+    setCurrentView, 
+    notification,
+    isQuickJoinModalOpen,
+    closeQuickJoinModal,
+    activeMatchForQuickJoin,
+    handleQuickJoinSuccess
+  } = useApp();
   const { t } = useLanguage();
 
   return (
@@ -74,6 +83,12 @@ const MainContent: React.FC = () => {
       <PaymentModal />
       <AuthModal />
       <OnboardingProfileModal />
+      <QuickJoinModal
+        isOpen={isQuickJoinModalOpen}
+        onClose={closeQuickJoinModal}
+        match={activeMatchForQuickJoin}
+        onSuccess={handleQuickJoinSuccess}
+      />
 
       {/* Mobile Tab Navigation */}
       <MobileTabNav />

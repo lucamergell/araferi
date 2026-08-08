@@ -286,6 +286,29 @@ export const translations = {
       admin: 'ადმინი',
     },
 
+    // Quick Join
+    quickJoin: {
+      modalTitle: 'შეუერთდი ამ მატჩს',
+      subtitle: 'შეიყვანეთ სახელი და ტელეფონის ნომერი მატჩზე სწრაფად შესასვლელად',
+      nameLabel: 'სახელი',
+      namePlaceholder: 'ჩაწერეთ თქვენი სახელი',
+      phoneLabel: 'ტელეფონის ნომერი',
+      phonePlaceholder: '+995 5xx xx xx xx',
+      joinBtn: 'შეუერთდი მატჩს',
+      successTitle: "შენ მატჩში ხარ! 🎾",
+      alreadyInMatch: "თქვენ უკვე ხართ ამ მატჩში.",
+      matchFull: "მატჩი შევსებულია",
+      invalidName: "გთხოვთ მიუთითოთ სახელი",
+      invalidPhone: "გთხოვთ მიუთითოთ სწორი ტელეფონის ნომერი",
+      proceedToPayment: "გადახდის არჩევა",
+      phonePlayersTab: "ტელეფონის მოთამაშეები",
+      matchDetails: "მატჩის დეტალები",
+      date: "თარიღი",
+      time: "დრო",
+      court: "კორტი",
+      location: "ლოკაცია",
+    },
+
     // General / Common
     common: {
       gel: '₾',
@@ -582,6 +605,29 @@ export const translations = {
       rankings: 'Rankings',
       profile: 'Profile',
       admin: 'Admin',
+    },
+
+    // Quick Join
+    quickJoin: {
+      modalTitle: 'Join this match',
+      subtitle: 'Enter your name and phone number to join quickly',
+      nameLabel: 'Name',
+      namePlaceholder: 'Enter your name',
+      phoneLabel: 'Phone number',
+      phonePlaceholder: '+995 5xx xx xx xx',
+      joinBtn: 'Join Match',
+      successTitle: "You're in! 🎾",
+      alreadyInMatch: "You're already in this match.",
+      matchFull: "Match is full",
+      invalidName: "Please enter your name",
+      invalidPhone: "Please enter a valid phone number",
+      proceedToPayment: "Proceed to Payment",
+      phonePlayersTab: "Quick-Join Players",
+      matchDetails: "Match details",
+      date: "Date",
+      time: "Time",
+      court: "Court",
+      location: "Location",
     },
 
     // General / Common

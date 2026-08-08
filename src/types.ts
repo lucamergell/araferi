@@ -54,7 +54,9 @@ export interface User {
   matchHistory: MatchHistoryItem[];
   role: 'user' | 'admin';
   isPlaceholder?: boolean;
+  isPhoneOnly?: boolean;
   isProfileComplete?: boolean;
+  normalizedPhone?: string;
   createdAt: string;
 }
 

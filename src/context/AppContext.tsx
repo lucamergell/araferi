@@ -23,6 +23,9 @@ interface AppContextType {
   isAuthModalOpen: boolean;
   isPaymentModalOpen: boolean;
   activeMatchForPayment: Match | null;
+  isQuickJoinModalOpen: boolean;
+  activeMatchForQuickJoin: Match | null;
+  activeQuickJoinUser: User | null;
   notification: { message: string; type: 'success' | 'info' | 'error' } | null;
   isLeaderboardDisabled: boolean;
   
@@ -32,6 +35,9 @@ interface AppContextType {
   openUserProfile: (userId: string) => void;
   openAuthModal: () => void;
   closeAuthModal: () => void;
+  openQuickJoinModal: (match: Match) => void;
+  closeQuickJoinModal: () => void;
+  handleQuickJoinSuccess: (user: User) => void;
   loginWithGoogle: (customData?: { email: string; name: string; avatar: string }) => Promise<void>;
   logout: () => Promise<void>;
   toggleAdminDemoMode: () => void;
@@ -123,8 +129,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [activeMatchForPayment, setActiveMatchForPayment] = useState<Match | null>(null);
+  const [isQuickJoinModalOpen, setIsQuickJoinModalOpen] = useState<boolean>(false);
+  const [activeMatchForQuickJoin, setActiveMatchForQuickJoin] = useState<Match | null>(null);
+  const [activeQuickJoinUser, setActiveQuickJoinUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
   const [isLeaderboardDisabled, setIsLeaderboardDisabled] = useState<boolean>(false);
+
+  const openQuickJoinModal = (match: Match) => {
+    setActiveMatchForQuickJoin(match);
+    setIsQuickJoinModalOpen(true);
+  };
+
+  const closeQuickJoinModal = () => {
+    setIsQuickJoinModalOpen(false);
+    setActiveMatchForQuickJoin(null);
+  };
+
+  const handleQuickJoinSuccess = (user: User) => {
+    setActiveQuickJoinUser(user);
+    if (activeMatchForQuickJoin) {
+      setActiveMatchForPayment(activeMatchForQuickJoin);
+      setIsPaymentModalOpen(true);
+    }
+    setIsQuickJoinModalOpen(false);
+  };
 
   // Firestore listener for app settings (leaderboard status)
   useEffect(() => {
@@ -488,19 +516,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const startJoinMatchFlow = (match: Match) => {
-    if (!currentUser) {
-      setIsAuthModalOpen(true);
-      showNotification('Please sign in with Google to join padel matches.', 'info');
-      return;
-    }
-
-    if (!currentUser.isProfileComplete) {
-      showNotification('Please complete your profile details first.', 'info');
-      return;
-    }
-
-    if (match.joinedUserIds.includes(currentUser.id)) {
-      showNotification('You have already joined this match!', 'info');
+    if (match.status === 'Cancelled') {
+      showNotification('This match has been cancelled.', 'error');
       return;
     }
 
@@ -509,13 +526,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    if (match.status === 'Cancelled') {
-      showNotification('This match has been cancelled.', 'error');
+    if (currentUser) {
+      if (!currentUser.isProfileComplete) {
+        showNotification('Please complete your profile details first.', 'info');
+        return;
+      }
+
+      if (match.joinedUserIds.includes(currentUser.id)) {
+        showNotification('You have already joined this match!', 'info');
+        return;
+      }
+
+      setActiveMatchForPayment(match);
+      setIsPaymentModalOpen(true);
       return;
     }
 
-    setActiveMatchForPayment(match);
-    setIsPaymentModalOpen(true);
+    openQuickJoinModal(match);
   };
 
   const closePaymentModal = () => {
@@ -524,10 +551,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const confirmJoinMatch = (paymentMethod: 'Bank Transfer' | 'Pay on Court' | 'Apple Pay' | 'Google Pay' | 'Credit Card' | string): boolean => {
-    if (!currentUser || !activeMatchForPayment) return false;
+    const targetUser = currentUser || activeQuickJoinUser;
+    if (!targetUser || !activeMatchForPayment) return false;
 
     const matchId = activeMatchForPayment.id;
-    const updatedJoined = [...activeMatchForPayment.joinedUserIds, currentUser.id];
+    if (activeMatchForPayment.joinedUserIds.includes(targetUser.id)) {
+      showNotification('You have already joined this match!', 'info');
+      closePaymentModal();
+      return false;
+    }
+
+    if (activeMatchForPayment.joinedUserIds.length >= activeMatchForPayment.totalSpots) {
+      showNotification('This match is full!', 'error');
+      closePaymentModal();
+      return false;
+    }
+
+    const updatedJoined = [...activeMatchForPayment.joinedUserIds, targetUser.id];
     const newStatus = updatedJoined.length >= activeMatchForPayment.totalSpots ? 'Fully Booked' : 'Open';
 
     // 1. Update match in Firestore
@@ -543,8 +583,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // 2. Create Payment Record in Firestore
     const newPayment: PaymentRecord = {
       id: `pay_${Date.now()}`,
-      userId: currentUser.id,
-      userName: currentUser.name,
+      userId: targetUser.id,
+      userName: targetUser.name,
       matchId: activeMatchForPayment.id,
       matchTitle: activeMatchForPayment.title,
       amountGel: activeMatchForPayment.pricePerPlayerGel,
@@ -560,19 +600,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // 3. Update player stats in Firestore
-    const newTotal = currentUser.stats.totalMatches + 1;
-    const newMonth = currentUser.stats.matchesThisMonth + 1;
-    const newHours = currentUser.stats.hoursPlayed + Math.round(activeMatchForPayment.durationMinutes / 60);
+    const currentStats = targetUser.stats || { totalMatches: 0, matchesThisMonth: 0, hoursPlayed: 0 };
+    const newTotal = (currentStats.totalMatches || 0) + 1;
+    const newMonth = (currentStats.matchesThisMonth || 0) + 1;
+    const newHours = (currentStats.hoursPlayed || 0) + Math.round(activeMatchForPayment.durationMinutes / 60);
 
     try {
-      updateDoc(doc(db, 'users', currentUser.id), {
+      updateDoc(doc(db, 'users', targetUser.id), {
         'stats.totalMatches': newTotal,
         'stats.matchesThisMonth': newMonth,
         'stats.hoursPlayed': newHours,
       });
     } catch (e) {
-      handleFirestoreError(e, OperationType.UPDATE, `users/${currentUser.id}`);
+      handleFirestoreError(e, OperationType.UPDATE, `users/${targetUser.id}`);
     }
+
+    setMatches(prev => prev.map(m => m.id === matchId ? { ...m, joinedUserIds: updatedJoined, status: newStatus } : m));
+    setUsers(prev => {
+      if (prev.some(u => u.id === targetUser.id)) {
+        return prev.map(u => u.id === targetUser.id ? {
+          ...u,
+          stats: { ...u.stats, totalMatches: newTotal, matchesThisMonth: newMonth, hoursPlayed: newHours }
+        } : u);
+      }
+      return [...prev, targetUser];
+    });
 
     showNotification(
       `Payment of ${activeMatchForPayment.pricePerPlayerGel} GEL confirmed via ${paymentMethod}! You joined ${activeMatchForPayment.title}.`,
@@ -580,6 +632,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
 
     closePaymentModal();
+    setActiveQuickJoinUser(null);
     return true;
   };
 

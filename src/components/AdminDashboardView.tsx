@@ -7,7 +7,7 @@ import { AdminEditCourtModal } from './AdminEditCourtModal';
 import { Match, User, Court } from '../types';
 import { 
   Shield, Plus, DollarSign, Calendar, Users, TrendingUp, Edit, Trash2, 
-  Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw, Power, Building, Navigation
+  Search, AlertTriangle, ShieldCheck, RefreshCw, BarChart2, CheckCircle2, XCircle, Trophy, RotateCcw, Power, Building, Navigation, Phone
 } from 'lucide-react';
 import { formatDateDDMMYYYY } from '../utils/formatters';
 import { UserAvatar } from './UserAvatar';
@@ -43,7 +43,7 @@ export const AdminDashboardView: React.FC = () => {
   const loggedInEmail = (firebaseUser?.email || currentUser?.email || '').toLowerCase();
   const isAuthorizedAdmin = loggedInEmail === ADMIN_EMAIL;
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'matches' | 'players' | 'payments' | 'courts'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'matches' | 'players' | 'phone-players' | 'payments' | 'courts'>('analytics');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | undefined>(undefined);
   const [editingPlayerUser, setEditingPlayerUser] = useState<User | null>(null);
@@ -302,7 +302,17 @@ export const AdminDashboardView: React.FC = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Player Profiles & Stats ({realUsers.length})</span>
+            <span>Player Profiles ({realUsers.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('phone-players')}
+            className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+              activeTab === 'phone-players' ? 'bg-amber-600 text-white shadow-lg' : 'text-purple-300/70 hover:text-white'
+            }`}
+          >
+            <Phone className="w-4 h-4 text-emerald-400" />
+            <span>Quick-Join Players ({users.filter(u => u.isPhoneOnly || u.email?.endsWith('@phone.padely.ge') || u.id.startsWith('qj_')).length})</span>
           </button>
 
           <button
@@ -948,6 +958,134 @@ export const AdminDashboardView: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3.5: Quick-Join Phone Players */}
+        {activeTab === 'phone-players' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search quick-join player by name or phone..."
+                  value={playerSearch}
+                  onChange={e => setPlayerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-[#120a21] border border-purple-800/40 rounded-xl text-xs text-white"
+                />
+              </div>
+              <div className="text-xs text-purple-300 font-semibold">
+                Unauthenticated Phone Players: <span className="text-amber-300 font-bold">{
+                  users.filter(u => u.isPhoneOnly || u.email?.endsWith('@phone.padely.ge') || u.id.startsWith('qj_')).length
+                }</span>
+              </div>
+            </div>
+
+            <div className="bg-[#120a21] rounded-3xl border border-purple-900/40 overflow-hidden text-xs">
+              <div className="p-4 bg-purple-950/40 border-b border-purple-900/30 grid grid-cols-12 font-bold text-purple-300 uppercase tracking-wider text-[10px]">
+                <div className="col-span-3">Player & Phone</div>
+                <div className="col-span-3">Joined Matches</div>
+                <div className="col-span-2">Registration Date</div>
+                <div className="col-span-2">Assign to Open Match</div>
+                <div className="col-span-2 text-right">Actions</div>
+              </div>
+
+              <div className="divide-y divide-purple-900/30">
+                {users
+                  .filter(u => u.isPhoneOnly || u.email?.endsWith('@phone.padely.ge') || u.id.startsWith('qj_'))
+                  .filter(u => `${u.name} ${u.phoneNumber}`.toLowerCase().includes(playerSearch.toLowerCase()))
+                  .map((player) => {
+                    const joinedMatchesList = matches.filter(m => m.joinedUserIds.includes(player.id));
+                    const openMatchesForPlayer = matches.filter(
+                      m => m.status !== 'Cancelled' && m.joinedUserIds.length < m.totalSpots && !m.joinedUserIds.includes(player.id)
+                    );
+
+                    return (
+                      <div key={player.id} className="p-4 grid grid-cols-12 items-center hover:bg-purple-900/20 transition-colors gap-1">
+                        
+                        {/* Player & Phone */}
+                        <div className="col-span-3 flex items-center gap-2.5 min-w-0">
+                          <UserAvatar name={player.name} userId={player.id} className="w-9 h-9 rounded-xl text-xs font-bold ring-2 ring-emerald-500/40 shrink-0" />
+                          <div className="truncate min-w-0">
+                            <div className="font-bold text-white truncate flex items-center gap-1">
+                              <span>{player.name}</span>
+                              <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600/40 text-[9px] font-bold shrink-0">Quick Join</span>
+                            </div>
+                            <div className="text-[11px] font-mono text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
+                              <Phone className="w-3 h-3 text-emerald-400" />
+                              <span>{player.phoneNumber || 'N/A'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Joined Matches */}
+                        <div className="col-span-3 space-y-1">
+                          <div className="font-bold text-purple-200 text-[11px]">{joinedMatchesList.length} matches joined</div>
+                          <div className="space-y-0.5 max-h-16 overflow-y-auto custom-scrollbar">
+                            {joinedMatchesList.map(m => (
+                              <div key={m.id} className="text-[10px] text-purple-300/80 truncate flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                                <span className="truncate">{m.title}</span>
+                              </div>
+                            ))}
+                            {joinedMatchesList.length === 0 && (
+                              <span className="text-[10px] text-purple-400/50 italic">No matches joined yet</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Reg Date */}
+                        <div className="col-span-2 text-purple-200 text-[11px]">
+                          {formatRegistrationDate(player.createdAt)}
+                        </div>
+
+                        {/* Assign to Match Dropdown */}
+                        <div className="col-span-2 flex items-center gap-1">
+                          <select
+                            value={assignMatchForPlayer[player.id] || ''}
+                            onChange={(e) => setAssignMatchForPlayer({ ...assignMatchForPlayer, [player.id]: e.target.value })}
+                            className="w-full px-2 py-1 bg-purple-950/60 border border-purple-800/40 rounded-lg text-[10px] text-white truncate"
+                          >
+                            <option value="">-- Assign Match --</option>
+                            {openMatchesForPlayer.map(m => (
+                              <option key={m.id} value={m.id}>
+                                {m.title} ({m.joinedUserIds.length}/{m.totalSpots})
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            disabled={!assignMatchForPlayer[player.id]}
+                            onClick={() => {
+                              const mid = assignMatchForPlayer[player.id];
+                              if (mid) {
+                                adminAssignPlayerToMatch(mid, player.id);
+                                setAssignMatchForPlayer({ ...assignMatchForPlayer, [player.id]: '' });
+                              }
+                            }}
+                            className="px-2 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white font-bold text-[10px] cursor-pointer shrink-0"
+                            title="Assign player to selected match"
+                          >
+                            Assign
+                          </button>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="col-span-2 text-right">
+                          <button
+                            onClick={() => setEditingPlayerUser(player)}
+                            className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10px] shadow transition-all cursor-pointer flex items-center gap-1 ml-auto"
+                          >
+                            <Edit className="w-3 h-3" />
+                            <span>Edit Player</span>
+                          </button>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
           </div>
         )}
