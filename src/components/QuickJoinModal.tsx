@@ -311,7 +311,7 @@ export const QuickJoinModal: React.FC<QuickJoinModalProps> = ({
                   {t.quickJoin.successTitle}
                 </h4>
                 <p className="text-xs text-purple-300/80">
-                  {joinedUser?.name}, თქვენ წარმატებით შეხვედით მატჩში.
+                  {joinedUser?.name}, აირჩიეთ გადახდის მეთოდი რეგისტრაციის დასასრულებლად.
                 </p>
               </div>
 
