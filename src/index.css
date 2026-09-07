@@ -321,3 +321,22 @@ html {
   animation: toastFade 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Maximalist Page Animations */
+@keyframes marqueeScroll {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marqueeScroll 18s linear infinite;
+}
+
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0px) rotate(var(--tw-rotate, 0deg)); }
+  50% { transform: translateY(-14px) rotate(var(--tw-rotate, 0deg)); }
+}
+
+.animate-float {
+  animation: floatBob 4s ease-in-out infinite;
+}
+

@@ -18,6 +18,7 @@ import { PaymentModal } from './components/PaymentModal';
 import { AuthModal } from './components/AuthModal';
 import { OnboardingProfileModal } from './components/OnboardingProfileModal';
 import { QuickJoinModal } from './components/QuickJoinModal';
+import { DekoHeroPage } from './components/DekoHeroPage';
 import { AbstractBackgroundAnimation } from './components/AbstractBackgroundAnimation';
 import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 import padelyLogo from './assets/images/Padely.png';
@@ -33,6 +34,34 @@ const MainContent: React.FC = () => {
     handleQuickJoinSuccess
   } = useApp();
   const { t } = useLanguage();
+
+  const [isDekoPage, setIsDekoPage] = React.useState<boolean>(() => {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return path.startsWith('/deko') || hash.includes('deko') || search.includes('deko');
+  });
+
+  React.useEffect(() => {
+    const checkRoute = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      setIsDekoPage(path.startsWith('/deko') || hash.includes('deko') || search.includes('deko'));
+    };
+
+    window.addEventListener('popstate', checkRoute);
+    window.addEventListener('hashchange', checkRoute);
+    return () => {
+      window.removeEventListener('popstate', checkRoute);
+      window.removeEventListener('hashchange', checkRoute);
+    };
+  }, []);
+
+  // Completely external dedicated hero-section page for DEKO at /deko
+  if (isDekoPage) {
+    return <DekoHeroPage />;
+  }
 
   return (
     <div className="min-h-screen bg-[#06030c] font-sans antialiased text-white selection:bg-purple-600 selection:text-white flex flex-col justify-between relative overflow-x-hidden">
