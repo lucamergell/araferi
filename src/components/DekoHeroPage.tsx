@@ -23,10 +23,32 @@ export const DekoHeroPage: React.FC = () => {
     return saved ? parseInt(saved, 10) : 1240;
   });
   const [copied, setCopied] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeCompliment, setActiveCompliment] = useState<string | null>(null);
   const [clickSparks, setClickSparks] = useState<{ id: number; x: number; y: number }[]>([]);
   const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Resume or unlock Web Audio on first gesture
+  useEffect(() => {
+    const unlockAudio = () => {
+      try {
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+          audioCtxRef.current.resume();
+        }
+      } catch (e) {
+        // Ignore audio unlock errors
+      }
+    };
+    window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true });
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+  }, []);
 
   // Sound Synth via Web Audio API (Magical Chime / Pop)
   const playSparkleSound = (freq = 520, type: OscillatorType = 'sine') => {
